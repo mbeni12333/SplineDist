@@ -1,0 +1,769 @@
+@article{Lin2021,
+abstract = {Segmenting 3D cell nuclei from microscopy image volumes is critical for biological and clinical analysis, enabling the study of cellular expression patterns and cell lineages. However, current datasets for neuronal nuclei usually contain volumes smaller than $10^{\text{-}3}\ mm^3$ with fewer than 500 instances per volume, unable to reveal the complexity in large brain regions and restrict the investigation of neuronal structures. In this paper, we have pushed the task forward to the sub-cubic millimeter scale and curated the NucMM dataset with two fully annotated volumes: one $0.1\ mm^3$ electron microscopy (EM) volume containing nearly the entire zebrafish brain with around 170,000 nuclei; and one $0.25\ mm^3$ micro-CT (uCT) volume containing part of a mouse visual cortex with about 7,000 nuclei. With two imaging modalities and significantly increased volume size and instance numbers, we discover a great diversity of neuronal nuclei in appearance and density, introducing new challenges to the field. We also perform a statistical analysis to illustrate those challenges quantitatively. To tackle the challenges, we propose a novel hybrid-representation learning model that combines the merits of foreground mask, contour map, and signed distance transform to produce high-quality 3D masks. The benchmark comparisons on the NucMM dataset show that our proposed method significantly outperforms state-of-the-art nuclei segmentation approaches. Code and data are available at https://connectomics-bazaar.github.io/proj/nucMM/index.html.},
+archivePrefix = {arXiv},
+arxivId = {2107.05840},
+author = {Lin, Zudi and Wei, Donglai and Petkova, Mariela D. and Wu, Yuelong and Ahmed, Zergham and K, Krishna Swaroop and Zou, Silin and Wendt, Nils and Boulanger-Weill, Jonathan and Wang, Xueying and Dhanyasi, Nagaraju and Arganda-Carreras, Ignacio and Engert, Florian and Lichtman, Jeff and Pfister, Hanspeter},
+eprint = {2107.05840},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Lin et al. - 2021 - NucMM Dataset 3D Neuronal Nuclei Instance Segmentation at Sub-Cubic Millimeter Scale.pdf:pdf},
+keywords = {3D,Brain {\textperiodcentered},Electron,Instance,Mi-croscopy (EM) {\textperiodcentered},Micro-CT (uCT){\textperiodcentered},Mouse,Nuclei {\textperiodcentered},Segmentation {\textperiodcentered},Zebrafish {\textperiodcentered}},
+month = {jul},
+pages = {164--174},
+title = {{NucMM Dataset: 3D Neuronal Nuclei Instance Segmentation at Sub-Cubic Millimeter Scale}},
+url = {http://arxiv.org/abs/2107.05840},
+year = {2021}
+}
+@article{Cao2021,
+abstract = {In the past few years, convolutional neural networks (CNNs) have achieved
+milestones in medical image analysis. Especially, the deep neural networks
+based on U-shaped architecture and skip-connections have been widely applied in
+a variety of medical image tasks. However, although CNN has achieved excellent
+performance, it cannot learn global and long-range semantic information
+interaction well due to the locality of the convolution operation. In this
+paper, we propose Swin-Unet, which is an Unet-like pure Transformer for medical
+image segmentation. The tokenized image patches are fed into the
+Transformer-based U-shaped Encoder-Decoder architecture with skip-connections
+for local-global semantic feature learning. Specifically, we use hierarchical
+Swin Transformer with shifted windows as the encoder to extract context
+features. And a symmetric Swin Transformer-based decoder with patch expanding
+layer is designed to perform the up-sampling operation to restore the spatial
+resolution of the feature maps. Under the direct down-sampling and up-sampling
+of the inputs and outputs by 4x, experiments on multi-organ and cardiac
+segmentation tasks demonstrate that the pure Transformer-based U-shaped
+Encoder-Decoder network outperforms those methods with full-convolution or the
+combination of transformer and convolution. The codes and trained models will
+be publicly available at https://github.com/HuCaoFighting/Swin-Unet.},
+archivePrefix = {arXiv},
+arxivId = {2105.05537},
+author = {Cao, Hu and Wang, Yueyue and Chen, Joy and Jiang, Dongsheng and Zhang, Xiaopeng and Tian, Qi and Wang, Manning},
+eprint = {2105.05537},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Cao et al. - 2021 - Swin-Unet Unet-like Pure Transformer for Medical Image Segmentation.pdf:pdf},
+month = {may},
+title = {{Swin-Unet: Unet-like Pure Transformer for Medical Image Segmentation}},
+url = {https://arxiv.org/abs/2105.05537v1},
+year = {2021}
+}
+@article{Strutz2021,
+abstract = {Distance transformation is an image processing technique used for many
+different applications. Related to a binary image, the general idea is to
+determine the distance of all background points to the nearest object point (or
+vice versa). In this tutorial, different approaches are explained in detail and
+compared using examples. Corresponding source code is provided to facilitate
+own investigations. A particular objective of this tutorial is to clarify the
+difference between arbitrary distance transforms and exact Euclidean distance
+transformations.},
+archivePrefix = {arXiv},
+arxivId = {2106.03503},
+author = {Strutz, Tilo},
+eprint = {2106.03503},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Strutz - 2021 - The Distance Transform and its Computation.pdf:pdf},
+month = {jun},
+title = {{The Distance Transform and its Computation}},
+url = {https://arxiv.org/abs/2106.03503v1},
+year = {2021}
+}
+@article{Ma2020,
+abstract = {Loss functions are one of the crucial ingredients in deep learning-based
+medical image segmentation methods. Many loss functions have been proposed in
+existing literature, but are studied separately or only investigated with few
+other losses. In this paper, we present a systematic taxonomy to sort existing
+loss functions into four meaningful categories. This helps to reveal links and
+fundamental similarities between them. Moreover, we explore the relationship
+between the traditional region-based and the more recent boundary-based loss
+functions. The PyTorch implementations of these loss functions are publicly
+available at \url{https://github.com/JunMa11/SegLoss}.},
+archivePrefix = {arXiv},
+arxivId = {2005.13449},
+author = {Ma, Jun},
+eprint = {2005.13449},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Ma - 2020 - Segmentation Loss Odyssey.pdf:pdf},
+keywords = {Deep learning {\textperiodcentered},Loss function {\textperiodcentered},Segmentation {\textperiodcentered},Taxonomy},
+month = {may},
+title = {{Segmentation Loss Odyssey}},
+url = {https://arxiv.org/abs/2005.13449v1},
+year = {2020}
+}
+@article{Shibuya2020,
+abstract = {Human brain is a layered structure, and performs not only a feedforward
+process from a lower layer to an upper layer but also a feedback process from
+an upper layer to a lower layer. The layer is a collection of neurons, and
+neural network is a mathematical model of the function of neurons. Although
+neural network imitates the human brain, everyone uses only feedforward process
+from the lower layer to the upper layer, and feedback process from the upper
+layer to the lower layer is not used. Therefore, in this paper, we propose
+Feedback U-Net using Convolutional LSTM which is the segmentation method using
+Convolutional LSTM and feedback process. The output of U-net gave feedback to
+the input, and the second round is performed. By using Convolutional LSTM, the
+features in the second round are extracted based on the features acquired in
+the first round. On both of the Drosophila cell image and Mouse cell image
+datasets, our method outperformed conventional U-Net which uses only
+feedforward process.},
+archivePrefix = {arXiv},
+arxivId = {2004.14581},
+author = {Shibuya, Eisuke and Hotta, Kazuhiro},
+eprint = {2004.14581},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Shibuya, Hotta - 2020 - Feedback U-net for Cell Image Segmentation.pdf:pdf},
+month = {apr},
+title = {{Feedback U-net for Cell Image Segmentation}},
+url = {https://arxiv.org/abs/2004.14581v1},
+year = {2020}
+}
+@article{Kulikov2018,
+abstract = {We propose a new and, arguably, a very simple reduction of instance
+segmentation to semantic segmentation. This reduction allows to train
+feed-forward non-recurrent deep instance segmentation systems in an end-to-end
+fashion using architectures that have been proposed for semantic segmentation.
+Our approach proceeds by introducing a fixed number of labels (colors) and then
+dynamically assigning object instances to those labels during training
+(coloring). A standard semantic segmentation objective is then used to train a
+network that can color previously unseen images. At test time, individual
+object instances can be recovered from the output of the trained convolutional
+network using simple connected component analysis. In the experimental
+validation, the coloring approach is shown to be capable of solving diverse
+instance segmentation tasks arising in autonomous driving (the Cityscapes
+benchmark), plant phenotyping (the CVPPP leaf segmentation challenge), and
+high-throughput microscopy image analysis. The source code is publicly available:
+https://github.com/kulikovv/DeepColoring.},
+archivePrefix = {arXiv},
+arxivId = {1807.10007},
+author = {Kulikov, Victor and Yurchenko, Victor and Lempitsky, Victor},
+eprint = {1807.10007},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Kulikov, Yurchenko, Lempitsky - 2018 - Instance Segmentation by Deep Coloring.pdf:pdf},
+keywords = {Convolutional neural networks !,Graph coloring,Index Terms-Instance segmentation,Semantic segmentation},
+month = {jul},
+title = {{Instance Segmentation by Deep Coloring}},
+url = {https://arxiv.org/abs/1807.10007v1},
+year = {2018}
+}
+@article{Salvador2017,
+abstract = {We present a recurrent model for semantic instance segmentation that
+sequentially generates binary masks and their associated class probabilities
+for every object in an image. Our proposed system is trainable end-to-end from
+an input image to a sequence of labeled masks and, compared to methods relying
+on object proposals, does not require post-processing steps on its output. We
+study the suitability of our recurrent model on three different instance
+segmentation benchmarks, namely Pascal VOC 2012, CVPPP Plant Leaf Segmentation
+and Cityscapes. Further, we analyze the object sorting patterns generated by
+our model and observe that it learns to follow a consistent pattern, which
+correlates with the activations learned in the encoder part of our network.
+Source code and models are available at https://imatge-upc.github.io/rsis/},
+archivePrefix = {arXiv},
+arxivId = {1712.00617},
+author = {Salvador, Amaia and Bellver, Miriam and Campos, Victor and Baradad, Manel and Marques, Ferran and Torres, Jordi and Giro-i-Nieto, Xavier},
+eprint = {1712.00617},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Salvador et al. - 2017 - Recurrent Neural Networks for Semantic Instance Segmentation.pdf:pdf},
+month = {dec},
+title = {{Recurrent Neural Networks for Semantic Instance Segmentation}},
+url = {https://arxiv.org/abs/1712.00617v4},
+year = {2017}
+}
+@article{Quelhas2010,
+abstract = {Plant development is orchestrated by transcription factors whose expression has become observable in living plants through the use of fluorescence microscopy. However, the exact quantification of expression levels is still not solved and most analysis is only performed through visual inspection. With the objective of automating the quantification of cell nuclei fluorescence we present a new approach to detect cell nuclei in 3D fluorescence confocal mi-croscopy, based on the use of the sliding band convergence filter (SBF). The SBF filter detects cell nuclei and estimate their shape with high accuracy in each 2D image plane. For 3D detection, individual 2D shapes are joined into 3D estimates and then corrected based on the analysis of the fluorescence profile. The final nuclei detection's precision/recall are of 0.779/0.803 respectively , and the average Dice's coefficient of 0.773.},
+author = {Quelhas, Pedro and Mendon{\c{c}}a, Ana Maria and Campilho, Aur{\'{e}}lio},
+doi = {10.1109/ICPR.2010.614},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Quelhas, Mendon{\c{c}}a, Campilho - 2010 - 3D cell nuclei fluorescence quantification using sliding band filter.pdf:pdf},
+title = {{3D cell nuclei fluorescence quantification using sliding band filter}},
+year = {2010}
+}
+@article{Zwick2006,
+abstract = {We present strongly polynomial time algorithms for the minimum cost flow problem and for the weighted bipartite matching problem, also known as the assignment problem.},
+author = {Zwick, Uri},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Zwick - 2006 - Lecture notes for Analysis of Algorithms Minimum cost flow and weighted bipartite matching.pdf:pdf},
+title = {{Lecture notes for "Analysis of Algorithms": Minimum cost flow and weighted bipartite matching}},
+year = {2006}
+}
+@article{Kalinin,
+abstract = {Cell deformation is regulated by complex underlying biological mechanisms associated with spatial and temporal morphological changes in the nucleus that are related to cell differentiation, development, proliferation, and disease. Thus, quantitative analysis of changes in size and shape of nuclear structures in 3D microscopic images is important not only for investigating nuclear organization, but also for detecting and treating pathological conditions such as cancer. While many efforts have been made to develop cell and nuclear shape characteristics in 2D or pseudo-3D, several studies have suggested that 3D morphometric measures provide better results for nuclear shape description and discrimination. A few methods have been proposed to classify cell and nuclear morphological phenotypes in 3D, however, there is a lack of publicly available 3D data for the evaluation and comparison of such algorithms. This limitation becomes of great importance when the ability to evaluate different approaches on benchmark data is needed for better dissemination of the current state of the art methods for bioimage analysis. To address this problem, we present a dataset containing two different cell collections, including original 3D microscopic images of cell nuclei and nucleoli. In addition, we perform a baseline evaluation of a number of popular classification algorithms using 2D and 3D voxel-based morphometric measures. To account for batch effects, while enabling calculations of AU-ROC and AUPR performance metrics, we propose a specific cross-validation scheme that we compare with commonly used k-fold cross-validation. Original and derived imaging data are made publicly available on the project web-page: http://www.socr.umich.edu/projects/ 3d-cell-morphometry/data.html.},
+author = {Kalinin, Alexandr A and Allyn-Feuer, Ari and Ade, Alex and Fon, Gordon-Victor and Meixner, Walter and Dilworth, David and {De Wet}, Jeffrey R and Higgins, Gerald A and Zheng, Gen and Creekmore, Amy and Wiley, John W and Verdone, James E and Veltri, Robert W and Pienta, Kenneth J and Coffey, Donald S and Athey, Brian D and Dinov, Ivo D},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Kalinin et al. - Unknown - 3D Cell Nuclear Morphology Microscopy Imaging Dataset and Voxel-Based Morphometry Classification Results.pdf:pdf},
+title = {{3D Cell Nuclear Morphology: Microscopy Imaging Dataset and Voxel-Based Morphometry Classification Results}},
+url = {http://www.socr.umich.edu/projects/}
+}
+@article{Keraudren,
+abstract = {Epithelial cells are present in many different organs and are essential for physiology. Understanding the molecular mechanisms via which cell-cell contacts are stabilised has important implications for a variety of diseases and cancers. To elaborate on such studies, we develop an automatic approach to cell segmentation based on a simple but effective combination of well-established image filters, morphological operations and watershed segmentation. Aiming at preserving the localisation of the different cell structures, we are able to extract nuclei, cell walls and cell-cell contacts with high accuracy. These turn out to be important for masking the image readouts of cadherin receptors and actin reorganisation to distinguish between junctional and cytoplasmic cell phenotypes, which makes the proposed approach well-suited for image-based high-throughput RNAi screens. Although we focus on epithelial cells, our approach has general applicability to other cell-based screens in confocal microscopy.},
+author = {Keraudren, Kevin and Spitaler, Martin and Braga, Vania M M and Rueckert, Daniel and Pizarro, Luis},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Keraudren et al. - Unknown - Two-Step Watershed Segmentation of Epithelial Cells.pdf:pdf},
+keywords = {Index Terms-Cell segmentation,biological image analysis,epithelial cells,high-content,high-throughput screening},
+title = {{Two-Step Watershed Segmentation of Epithelial Cells}}
+}
+@article{Yi2019,
+abstract = {Instance segmentation of biological images is essential for studying object behaviors and properties. The challenges, such as clustering, occlusion, and adhesion problems of the objects, make instance segmentation a non-trivial task. Current box-free instance segmentation methods typically rely on local pixel-level information. Due to a lack of global object view, these methods are prone to over- or under-segmentation. On the contrary, the box-based instance segmentation methods incorporate object detection into the segmentation, performing better in identifying the individual instances. In this paper, we propose a new box-based instance segmentation method. Mainly, we locate the object bounding boxes from their center points. The object features are subsequently reused in the segmentation branch as a guide to separate the clustered instances within an RoI patch. Along with the instance normalization, the model is able to recover the target object distribution and suppress the distribution of neighboring attached objects. Consequently, the proposed model performs excellently in segmenting the clustered objects while retaining the target object details. The proposed method achieves state-of-the-art performances on three biological datasets: cell nuclei, plant phenotyping dataset, and neural cells.},
+archivePrefix = {arXiv},
+arxivId = {1911.09199},
+author = {Yi, Jingru and Tang, Hui and Wu, Pengxiang and Liu, Bo and Hoeppner, Daniel J. and Metaxas, Dimitris N. and Han, Lianyi and Fan, Wei},
+eprint = {1911.09199},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Yi et al. - 2019 - Object-Guided Instance Segmentation for Biological Images.pdf:pdf},
+journal = {AAAI 2020 - 34th AAAI Conference on Artificial Intelligence},
+month = {nov},
+pages = {12677--12684},
+publisher = {AAAI press},
+title = {{Object-Guided Instance Segmentation for Biological Images}},
+url = {http://arxiv.org/abs/1911.09199},
+year = {2019}
+}
+@article{Wang2020,
+abstract = {In this work, we aim at building a simple, direct, and fast instance
+segmentation framework with strong performance. We follow the principle of the
+SOLO method of Wang et al. "SOLO: segmenting objects by locations".
+Importantly, we take one step further by dynamically learning the mask head of
+the object segmenter such that the mask head is conditioned on the location.
+Specifically, the mask branch is decoupled into a mask kernel branch and mask
+feature branch, which are responsible for learning the convolution kernel and
+the convolved features respectively. Moreover, we propose Matrix NMS (non
+maximum suppression) to significantly reduce the inference time overhead due to
+NMS of masks. Our Matrix NMS performs NMS with parallel matrix operations in
+one shot, and yields better results. We demonstrate a simple direct instance
+segmentation system, outperforming a few state-of-the-art methods in both speed
+and accuracy. A light-weight version of SOLOv2 executes at 31.3 FPS and yields
+37.1% AP. Moreover, our state-of-the-art results in object detection (from our
+mask byproduct) and panoptic segmentation show the potential to serve as a new
+strong baseline for many instance-level recognition tasks besides instance
+segmentation. Code is available at: https://git.io/AdelaiDet},
+archivePrefix = {arXiv},
+arxivId = {2003.10152},
+author = {Wang, Xinlong and Zhang, Rufeng and Kong, Tao and Li, Lei and Shen, Chunhua},
+eprint = {2003.10152},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Wang et al. - 2020 - SOLOv2 Dynamic and Fast Instance Segmentation.pdf:pdf},
+journal = {Advances in Neural Information Processing Systems},
+month = {mar},
+publisher = {Neural information processing systems foundation},
+title = {{SOLOv2: Dynamic and Fast Instance Segmentation}},
+url = {https://arxiv.org/abs/2003.10152v3},
+volume = {2020-Decem},
+year = {2020}
+}
+@article{Fazeli2020,
+abstract = {The ability of cells to migrate is a fundamental physiological process involved in embryonic development, tissue homeostasis, immune surveillance, and wound healing. Therefore, the mechanisms governing cellular locomotion have been under intense scrutiny over the last 50 years. One of the main tools of this scrutiny is live-cell quantitative imaging, where researchers image cells over time to study their migration and quantitatively analyze their dynamics by tracking them using the recorded images. Despite the availability of computational tools, manual tracking remains widely used among researchers due to the difficulty setting up robust automated cell tracking and large-scale analysis. Here we provide a detailed analysis pipeline illustrating how the deep learning network StarDist can be combined with the popular tracking software TrackMate to perform 2D automated cell tracking and provide fully quantitative readouts. Our proposed protocol is compatible with both fluorescent and widefield images. It only requires freely available and open-source software (ZeroCostDL4Mic and Fiji), and does not require any coding knowledge from the users, making it a versatile and powerful tool for the field. We demonstrate this pipeline's usability by automatically tracking cancer cells and T cells using fluorescent and brightfield images. Importantly, we provide, as supplementary information, a detailed step-by-step protocol to allow researchers to implement it with their images.
+
+### Competing Interest Statement
+
+The authors have declared no competing interest.},
+author = {Fazeli, Elnaz and Roy, Nathan H. and Follain, Gautier and Laine, Romain F. and von Chamier, Lucas and H{\"{a}}nninen, Pekka E. and Eriksson, John E. and Tinevez, Jean-Yves and Jacquemet, Guillaume},
+doi = {10.1101/2020.09.22.306233},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Fazeli et al. - 2020 - Automated cell tracking using StarDist and TrackMate.pdf:pdf},
+journal = {bioRxiv},
+keywords = {Automated tracking,Cell migration,Deep-learning,Image analysis,Microscopy,StarDist,TrackMate},
+month = {sep},
+pages = {2020.09.22.306233},
+publisher = {Cold Spring Harbor Laboratory},
+title = {{Automated cell tracking using StarDist and TrackMate}},
+url = {https://www.biorxiv.org/content/10.1101/2020.09.22.306233v1 https://www.biorxiv.org/content/10.1101/2020.09.22.306233v1.abstract},
+volume = {9},
+year = {2020}
+}
+@article{Stringer2020,
+abstract = {Many biological applications require the segmentation of cell bodies, membranes and nuclei from microscopy images. Deep learning has enabled great progress on this problem, but current methods are specialized for images that have large training datasets. Here we introduce a generalist, deep learning-based segmentation algorithm called Cellpose, which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments. We trained Cellpose on a new dataset of highly-varied images of cells, containing over 70,000 segmented objects. To support community contributions to the training data, we developed software for manual labelling and for curation of the automated results, with optional direct upload to our data repository. Periodically retraining the model on the community-contributed data will ensure that Cellpose improves constantly.},
+author = {Stringer, Carsen and Michaelos, Michalis and Pachitariu, Marius},
+doi = {10.1101/2020.02.02.931238},
+journal = {bioRxiv},
+month = {feb},
+pages = {2020.02.02.931238},
+publisher = {Cold Spring Harbor Laboratory},
+title = {{Cellpose: a generalist algorithm for cellular segmentation}},
+url = {https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1 https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1.abstract},
+year = {2020}
+}
+@article{Guay2020,
+abstract = {The copyright holder for this preprint is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. This article is a US Government work. It is not subject to copyright under 17 USC 105 and is also made available for use under a CC0 license. Modern biological electron microscopy produces nanoscale images from biological samples of unprecedented volume, and researchers now face the problem of making use of the data. Image segmentation has played a fundamental role in EM image analysis for decades, but challenges from biological EM have spurred interest and rapid advances in computer vision for automating the segmentation process. In this paper, we demonstrate dense cellular segmentation as a method for generating rich, 3D models of tissues and their constituent cells and organelles from scanning electron microscopy images. We describe how to use ensembles of 2D-3D neural networks to compute dense cellular segmentations of cells and organelles inside two human platelet tissue samples. We conclude by discussing ongoing challenges for realizing practical dense cellular segmentation algorithms.},
+author = {Guay, Matthew and Emam, Zeyad and Anderson, Adam and Aronova, Maria and Leapman, Richard},
+doi = {10.1101/2020.01.05.895003},
+issn = {2692-8205},
+journal = {bioRxiv},
+month = {feb},
+pages = {2020.01.05.895003},
+publisher = {Cold Spring Harbor Laboratory},
+title = {{Dense cellular segmentation using 2D-3D neural network ensembles for electron microscopy}},
+url = {https://doi.org/10.1101/2020.01.05.895003},
+year = {2020}
+}
+@article{Mandal2020,
+abstract = {We present SplineDist, an instance segmentation convolutional neural network for bioimages extending the popular StarDist method. While StarDist describes objects as star-convex polygons, SplineDist uses a more flexible and general representation by modelling objects as planar parametric spline curves. Based on a new loss formulation that exploits the properties of spline constructions, we can incorporate our new object model in StarDist's architecture with minimal changes. We demonstrate in synthetic and real images that SplineDist produces segmentation outlines of equal quality than StarDist with smaller network size and accurately captures non-star-convex objects that cannot be segmented with StarDist.
+
+### Competing Interest Statement
+
+The authors have declared no competing interest.},
+author = {Mandal, Soham and Uhlmann, Virginie},
+doi = {10.1101/2020.10.27.357640},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Mandal, Uhlmann - 2020 - SplineDist Automated Cell Segmentation with Spline Curves.pdf:pdf},
+journal = {bioRxiv},
+keywords = {Index Terms-Bioimage analysis,convolutional neural networks,ma-chine learning,segmentation,spline interpo-lation},
+month = {oct},
+pages = {2020.10.27.357640},
+publisher = {Cold Spring Harbor Laboratory},
+title = {{SplineDist: Automated Cell Segmentation with Spline Curves}},
+url = {https://www.biorxiv.org/content/10.1101/2020.10.27.357640v1 https://www.biorxiv.org/content/10.1101/2020.10.27.357640v1.abstract},
+year = {2020}
+}
+@article{Suzuki1985,
+abstract = {Two border following algorithms are proposed for the topological analysis of digitized binary images. The first one determines the surroundness relations among the borders of a binary image. Since the outer borders and the hole borders have a one-to-one correspondence to the connected components of 1-pixels and to the holes, respectively, the proposed algorithm yields a representation of a binary image, from which one can extract some sort of features without reconstructing the image. The second algorithm, which is a modified version of the first, follows only the outermost borders (i.e., the outer borders which are not surrounded by holes). These algorithms can be effectively used in component counting, shrinking, and topological structural analysis of binary images, when a sequential digital computer is used. {\textcopyright} 1985.},
+author = {Suzuki, Satoshi and Be, Keiichi A.},
+doi = {10.1016/0734-189X(85)90016-7},
+journal = {Computer Vision, Graphics and Image Processing},
+number = {1},
+pages = {32--46},
+title = {{Topological structural analysis of digitized binary images by border following}},
+volume = {30},
+year = {1985}
+}
+@article{Wang2018,
+abstract = {Single cell segmentation is critical and challenging in live cell imaging
+data analysis. Traditional image processing methods and tools require
+time-consuming and labor-intensive efforts of manually fine-tuning parameters.
+Slight variations of image setting may lead to poor segmentation results.
+Recent development of deep convolutional neural networks(CNN) provides a
+potentially efficient, general and robust method for segmentation. Most
+existing CNN-based methods treat segmentation as a pixel-wise classification
+problem. However, three unique problems of cell images adversely affect
+segmentation accuracy: lack of established training dataset, few pixels on cell
+boundaries, and ubiquitous blurry features. The problem becomes especially
+severe with densely packed cells, where a pixel-wise classification method
+tends to identify two neighboring cells with blurry shared boundary as one
+cell, leading to poor cell count accuracy and affecting subsequent analysis.
+Here we developed a different learning strategy that combines strengths of CNN
+and watershed algorithm. The method first trains a CNN to learn Euclidean
+distance transform of binary masks corresponding to the input images. Then
+another CNN is trained to detect individual cells in the Euclidean distance
+transform. In the third step, the watershed algorithm takes the outputs from
+the previous steps as inputs and performs the segmentation. We tested the
+combined method and various forms of the pixel-wise classification algorithm on
+segmenting fluorescence and transmitted light images. The new method achieves
+similar pixel accuracy but significant higher cell count accuracy than
+pixel-wise classification methods do, and the advantage is most obvious when
+applying on noisy images of densely packed cells.},
+archivePrefix = {arXiv},
+arxivId = {1803.10829},
+author = {Wang, Weikang and Taft, David A. and Chen, Yi-Jiun and Zhang, Jingyu and Wallace, Callen T. and Xu, Min and Watkins, Simon C. and Xing, Jianhua},
+eprint = {1803.10829},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Wang et al. - 2018 - Learn to segment single cells with deep distance estimator and deep cell detector.pdf:pdf},
+journal = {Computers in Biology and Medicine},
+keywords = {Blurry boundary,Cell count accuracy,Connected cells,Convolutional neural networks,Watershed},
+month = {mar},
+pages = {133--141},
+publisher = {Elsevier Ltd},
+title = {{Learn to segment single cells with deep distance estimator and deep cell detector}},
+url = {https://arxiv.org/abs/1803.10829v2},
+volume = {108},
+year = {2018}
+}
+@article{Feng2019,
+abstract = {Quantitative analysis of cell nuclei in microscopic images is an essential yet challenging source of biological and pathological information. The major challenge is accurate detection and segmentation of densely packed nuclei in images acquired under a variety of conditions. Mask R-CNN-based methods have achieved state-of-the-art nucleus segmentation. However, the current pipeline requires fully annotated training images, which are time consuming to create and sometimes noisy. Importantly, nuclei often appear similar within the same image. This similarity could be utilized to segment nuclei with only partially labeled training examples. We propose a simple yet effective region-proposal module for the current Mask R-CNN pipeline to perform few-exemplar learning. To capture the similarities between unlabeled regions and labeled nuclei, we apply decomposed self-attention to learned features. On the self-attention map, we observe strong activation at the centers and edges of all nuclei, including unlabeled nuclei. On this basis, our region-proposal module propagates partial annotations to the whole image and proposes effective bounding boxes for the bounding box-regression and binary mask-generation modules. Our method effectively learns from unlabeled regions thereby improving detection performance. We test our method with various nuclear images. When trained with only 1/4 of the nuclei annotated, our approach retains a detection accuracy comparable to that from training with fully annotated data. Moreover, our method can serve as a bootstrapping step to create full annotations of datasets, iteratively generating and correcting annotations until a predetermined coverage and accuracy are reached. The source code is available at https://github.com/feng-lab/nuclei.},
+archivePrefix = {arXiv},
+arxivId = {1907.09738},
+author = {Feng, Linqing and Song, Jun Ho and Kim, Jiwon and Jeong, Soomin and Park, Jin Sung and Kim, Jinhyun},
+doi = {10.1109/ACCESS.2019.2952098},
+eprint = {1907.09738},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Feng et al. - 2019 - Robust Nucleus Detection with Partially Labeled Exemplars.pdf:pdf},
+journal = {IEEE Access},
+keywords = {Nucleus segmentation,computer-assisted annotating,convolutional neural networks,deep learning,few-exemplar learning,semisupervised learning},
+month = {jul},
+pages = {162169--162178},
+publisher = {Institute of Electrical and Electronics Engineers Inc.},
+title = {{Robust Nucleus Detection with Partially Labeled Exemplars}},
+url = {http://arxiv.org/abs/1907.09738 http://dx.doi.org/10.1109/ACCESS.2019.2952098},
+volume = {7},
+year = {2019}
+}
+@article{Brigger2000,
+abstract = {We present a novel formulation for B-spline snakes that can be used as a tool for fast and intuitive contour outlining. We start with a theoretical argument in favor of splines in the traditional formulation by showing that the optimal, curvature-constrained snake is a cubic spline, irrespective of the form of the external energy field. Unfortunately, such regularized snakes suffer from slow convergence speed because of a large number of control points, as well as from difficulties in determining the weight factors associated to the internal energies of the curve. We therefore propose an alternative formulation in which the intrinsic scale of the spline model is adjusted a priori; this leads to a reduction of the number of parameters to be optimized and eliminates the need for internal energies (i.e., the regularization term). In other words, we are now controlling the elasticity of the spline implicitly and rather intuitively by varying the spacing between the spline knots. The theory is embedded into a multiresolution formulation demonstrating improved stability in noisy image environments. Validation results are presented, comparing the traditional snake using internal energies and the proposed approach without internal energies, showing the similar performance of the latter. Several biomedical examples of applications are included to illustrate the versatility of the method. {\textcopyright} 2000 IEEE.},
+author = {Brigger, Patrick and Hoeg, Jeff and Unser, Michael},
+doi = {10.1109/83.862624},
+journal = {IEEE Transactions on Image Processing},
+number = {9},
+pages = {1484--1496},
+publisher = {Institute of Electrical and Electronics Engineers Inc.},
+title = {{B-spline snakes: A flexible tool for parametric contour detection}},
+volume = {9},
+year = {2000}
+}
+@article{Uhlmann2016,
+abstract = {We introduce a new model of parametric contours defined in a continuous fashion. Our curve model relies on Hermite spline interpolation and can easily generate curves with sharp discontinuities; it also grants direct access to the tangent at each location. With these two features, the Hermite snake distinguishes itself from classical spline-snake models and allows one to address certain bioimaging problems in a more efficient way. More precisely, the Hermite snake construction allows introducing sharp corners in the snake curve and designing directional energy functionals relying on local orientation information in the input image. Using the formalism of spline theory, the model is shown to meet practical requirements such as invariance to affine transformations and good approximation properties. Finally, the dependence on initial conditions and the robustness to the noise is studied on synthetic data in order to validate our Hermite snake model, and its usefulness is illustrated on real biological images acquired using brightfield, phase-contrast, differential-interference-contrast, and scanning-electron microscopy.},
+author = {Uhlmann, Virginie and Fageot, Julien and Unser, Michael},
+doi = {10.1109/TIP.2016.2551363},
+issn = {10577149},
+journal = {IEEE Transactions on Image Processing},
+keywords = {Active contours,Hermite interpolation,Hermite splines,bioimage analysis,segmentation},
+month = {jun},
+number = {6},
+pages = {2803--2816},
+publisher = {Institute of Electrical and Electronics Engineers Inc.},
+title = {{Hermite Snakes With Control of Tangents}},
+volume = {25},
+year = {2016}
+}
+@article{Kumar2017,
+abstract = {Nuclear segmentation in digital microscopic tissue images can enable extraction of high-quality features for nuclear morphometrics and other analysis in computational pathology. Conventional image processing techniques, such as Otsu thresholding and watershed segmentation, do not work effectively on challenging cases, such as chromatin-sparse and crowded nuclei. In contrast, machine learning-based segmentation can generalize across various nuclear appearances. However, training machine learning algorithms requires data sets of images, in which a vast number of nuclei have been annotated. Publicly accessible and annotated data sets, along with widely agreed upon metrics to compare techniques, have catalyzed tremendous innovation and progress on other image classification problems, particularly in object recognition. Inspired by their success, we introduce a large publicly accessible data set of hematoxylin and eosin (HE)-stained tissue images with more than 21000 painstakingly annotated nuclear boundaries, whose quality was validated by a medical doctor. Because our data set is taken from multiple hospitals and includes a diversity of nuclear appearances from several patients, disease states, and organs, techniques trained on it are likely to generalize well and work right out-of-the-box on other HE-stained images. We also propose a new metric to evaluate nuclear segmentation results that penalizes object- and pixel-level errors in a unified manner, unlike previous metrics that penalize only one type of error. We also propose a segmentation technique based on deep learning that lays a special emphasis on identifying the nuclear boundaries, including those between the touching or overlapping nuclei, and works well on a diverse set of test images.},
+author = {Kumar, Neeraj and Verma, Ruchika and Sharma, Sanuj and Bhargava, Surabhi and Vahadane, Abhishek and Sethi, Amit},
+doi = {10.1109/TMI.2017.2677499},
+file = {:E\:/stuff/study/Master 2/PRAT/papers/dataset.pdf:pdf},
+journal = {IEEE Transactions on Medical Imaging},
+keywords = {Annotation,boundaries,dataset,deep learning,nuclear segmentation,nuclei},
+month = {jul},
+number = {7},
+pages = {1550--1560},
+publisher = {Institute of Electrical and Electronics Engineers Inc.},
+title = {{A Dataset and a Technique for Generalized Nuclear Segmentation for Computational Pathology}},
+volume = {36},
+year = {2017}
+}
+@article{Hafiz2020,
+abstract = {Object detection or localization is an incremental step in progression from coarse to fine digital image inference. It not only provides the classes of the image objects, but also provides the location of the image objects which have been classified. The location is given in the form of bounding boxes or centroids. Semantic segmentation gives fine inference by predicting labels for every pixel in the input image. Each pixel is labelled according to the object class within which it is enclosed. Furthering this evolution, instance segmentation gives different labels for separate instances of objects belonging to the same class. Hence, instance segmentation may be defined as the technique of simultaneously solving the problem of object detection as well as that of semantic segmentation. In this survey paper on instance segmentation -- its background, issues, techniques, evolution, popular datasets, related work up to the state of the art and future scope have been discussed. The paper provides valuable information for those who want to do research in the field of instance segmentation.},
+archivePrefix = {arXiv},
+arxivId = {2007.00047},
+author = {Hafiz, Abdul Mueed and Bhat, Ghulam Mohiuddin},
+doi = {10.1007/s13735-020-00195-x},
+eprint = {2007.00047},
+file = {:E\:/stuff/study/Master 2/PRAT/papers/surveyInstanceSeg.pdf:pdf},
+journal = {International Journal of Multimedia Information Retrieval},
+keywords = {Convolutional neural networks,Deep learning,Instance segmentation,Object detection},
+month = {jun},
+number = {3},
+pages = {171--189},
+publisher = {Springer},
+title = {{A Survey on Instance Segmentation: State of the art}},
+url = {https://arxiv.org/abs/2007.00047v1},
+volume = {9},
+year = {2020}
+}
+@article{Diakogiannis2019,
+abstract = {Scene understanding of high resolution aerial images is of great importance for the task of automated monitoring in various remote sensing applications. Due to the large within-class and small between-class variance in pixel values of objects of interest, this remains a challenging task. In recent years, deep convolutional neural networks have started being used in remote sensing applications and demonstrate state of the art performance for pixel level classification of objects. \textcolor{black}{Here we propose a reliable framework for performant results for the task of semantic segmentation of monotemporal very high resolution aerial images. Our framework consists of a novel deep learning architecture, ResUNet-a, and a novel loss function based on the Dice loss. ResUNet-a uses a UNet encoder/decoder backbone, in combination with residual connections, atrous convolutions, pyramid scene parsing pooling and multi-tasking inference. ResUNet-a infers sequentially the boundary of the objects, the distance transform of the segmentation mask, the segmentation mask and a colored reconstruction of the input. Each of the tasks is conditioned on the inference of the previous ones, thus establishing a conditioned relationship between the various tasks, as this is described through the architecture's computation graph. We analyse the performance of several flavours of the Generalized Dice loss for semantic segmentation, and we introduce a novel variant loss function for semantic segmentation of objects that has excellent convergence properties and behaves well even under the presence of highly imbalanced classes.} The performance of our modeling framework is evaluated on the ISPRS 2D Potsdam dataset. Results show state-of-the-art performance with an average F1 score of 92.9\% over all classes for our best model.},
+archivePrefix = {arXiv},
+arxivId = {1904.00592},
+author = {Diakogiannis, Foivos I. and Waldner, Fran{\c{c}}ois and Caccetta, Peter and Wu, Chen},
+doi = {10.1016/j.isprsjprs.2020.01.013},
+eprint = {1904.00592},
+journal = {ISPRS Journal of Photogrammetry and Remote Sensing},
+keywords = {Architecture,Convolutional neural network,Data augmentation,Loss function,Very high spatial resolution},
+month = {apr},
+pages = {94--114},
+publisher = {Elsevier B.V.},
+title = {{ResUNet-a: a deep learning framework for semantic segmentation of remotely sensed data}},
+url = {http://arxiv.org/abs/1904.00592 http://dx.doi.org/10.1016/j.isprsjprs.2020.01.013},
+volume = {162},
+year = {2019}
+}
+@article{Cicek2016,
+abstract = {This paper introduces a network for volumetric segmentation that learns from
+sparsely annotated volumetric images. We outline two attractive use cases of
+this method: (1) In a semi-automated setup, the user annotates some slices in
+the volume to be segmented. The network learns from these sparse annotations
+and provides a dense 3D segmentation. (2) In a fully-automated setup, we assume
+that a representative, sparsely annotated training set exists. Trained on this
+data set, the network densely segments new volumetric images. The proposed
+network extends the previous u-net architecture from Ronneberger et al. by
+replacing all 2D operations with their 3D counterparts. The implementation
+performs on-the-fly elastic deformations for efficient data augmentation during
+training. It is trained end-to-end from scratch, i.e., no pre-trained network
+is required. We test the performance of the proposed method on a complex,
+highly variable 3D structure, the Xenopus kidney, and achieve good results for
+both use cases.},
+archivePrefix = {arXiv},
+arxivId = {1606.06650},
+author = {{\c{C}}i{\c{c}}ek, {\"{O}}zg{\"{u}}n and Abdulkadir, Ahmed and Lienkamp, Soeren S. and Brox, Thomas and Ronneberger, Olaf},
+eprint = {1606.06650},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/{\c{C}}i{\c{c}}ek et al. - 2016 - 3D U-Net Learning Dense Volumetric Segmentation from Sparse Annotation.pdf:pdf},
+journal = {Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)},
+keywords = {3D,Biomedical volumetric image segmentation,Convolutional neural networks,Fully-automated,Semi-automated,Sparse annotation,Xenopus kidney},
+month = {jun},
+pages = {424--432},
+publisher = {Springer Verlag},
+title = {{3D U-Net: Learning Dense Volumetric Segmentation from Sparse Annotation}},
+url = {https://arxiv.org/abs/1606.06650v1},
+volume = {9901 LNCS},
+year = {2016}
+}
+@inproceedings{Schmidt2018,
+abstract = {Automatic detection and segmentation of cells and nuclei in microscopy images is important for many biological applications. Recent successful learning-based approaches include per-pixel cell segmentation with subsequent pixel grouping, or localization of bounding boxes with subsequent shape refinement. In situations of crowded cells, these can be prone to segmentation errors, such as falsely merging bordering cells or suppressing valid cell instances due to the poor approximation with bounding boxes. To overcome these issues, we propose to localize cell nuclei via star-convex polygons, which are a much better shape representation as compared to bounding boxes and thus do not need shape refinement. To that end, we train a convolutional neural network that predicts for every pixel a polygon for the cell instance at that position. We demonstrate the merits of our approach on two synthetic datasets and one challenging dataset of diverse fluorescence microscopy images.},
+archivePrefix = {arXiv},
+arxivId = {1806.03535},
+author = {Schmidt, Uwe and Weigert, Martin and Broaddus, Coleman and Myers, Gene},
+booktitle = {Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)},
+doi = {10.1007/978-3-030-00934-2_30},
+eprint = {1806.03535},
+file = {:E\:/stuff/study/Master 2/PRAT/papers/stardist.pdf:pdf},
+isbn = {9783030009335},
+issn = {16113349},
+month = {jun},
+pages = {265--273},
+publisher = {Springer Verlag},
+title = {{Cell detection with star-convex polygons}},
+url = {https://arxiv.org/pdf/1806.03535.pdf},
+volume = {11071 LNCS},
+year = {2018}
+}
+@article{Nishimura2019,
+abstract = {Cell shape analysis is important in biomedical research. Deep learning
+methods may perform to segment individual cells if they use sufficient training
+data that the boundary of each cell is annotated. However, it is very
+time-consuming for preparing such detailed annotation for many cell culture
+conditions. In this paper, we propose a weakly supervised method that can
+segment individual cell regions who touch each other with unclear boundaries in
+dense conditions without the training data for cell regions. We demonstrated
+the efficacy of our method using several data-set including multiple cell types
+captured by several types of microscopy. Our method achieved the highest
+accuracy compared with several conventional methods. In addition, we
+demonstrated that our method can perform without any annotation by using
+fluorescence images that cell nuclear were stained as training data. Code is
+publicly available in "https://github.com/naivete5656/WSISPDR".},
+archivePrefix = {arXiv},
+arxivId = {1911.13077},
+author = {Nishimura, Kazuya and Ker, Dai Fei Elmer and Bise, Ryoma},
+eprint = {1911.13077},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Nishimura, Ker, Bise - 2019 - Weakly Supervised Cell Instance Segmentation by Propagating from Detection Response(2).pdf:pdf},
+journal = {Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)},
+keywords = {Cell segmentation,Microscopy,Weakly supervised learning},
+month = {nov},
+pages = {649--657},
+publisher = {Springer Science and Business Media Deutschland GmbH},
+title = {{Weakly Supervised Cell Instance Segmentation by Propagating from Detection Response}},
+url = {https://arxiv.org/abs/1911.13077v1},
+volume = {11764 LNCS},
+year = {2019}
+}
+@article{Zhou2019,
+abstract = {Cell instance segmentation in Pap smear image remains challenging due to the
+wide existence of occlusion among translucent cytoplasm in cell clumps.
+Conventional methods heavily rely on accurate nuclei detection results and are
+easily disturbed by miscellaneous objects. In this paper, we propose a novel
+Instance Relation Network (IRNet) for robust overlapping cell segmentation by
+exploring instance relation interaction. Specifically, we propose the Instance
+Relation Module to construct the cell association matrix for transferring
+information among individual cell-instance features. With the collaboration of
+different instances, the augmented features gain benefits from contextual
+information and improve semantic consistency. Meanwhile, we proposed a sparsity
+constrained Duplicate Removal Module to eliminate the misalignment between
+classification and localization accuracy for candidates selection. The largest
+cervical Pap smear (CPS) dataset with more than 8000 cell annotations in Pap
+smear image was constructed for comprehensive evaluation. Our method
+outperforms other methods by a large margin, demonstrating the effectiveness of
+exploring instance relation.},
+archivePrefix = {arXiv},
+arxivId = {1908.06623},
+author = {Zhou, Yanning and Chen, Hao and Xu, Jiaqi and Dou, Qi and Heng, Pheng-Ann},
+eprint = {1908.06623},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Zhou et al. - 2019 - IRNet Instance Relation Network for Overlapping Cervical Cell Segmentation.pdf:pdf},
+journal = {Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)},
+month = {aug},
+pages = {640--648},
+publisher = {Springer Science and Business Media Deutschland GmbH},
+title = {{IRNet: Instance Relation Network for Overlapping Cervical Cell Segmentation}},
+url = {https://arxiv.org/abs/1908.06623v1},
+volume = {11764 LNCS},
+year = {2019}
+}
+@article{Yi2019a,
+abstract = {Neural cell instance segmentation, which aims at joint detection and segmentation of every neural cell in a microscopic image, is essential to many neuroscience applications. The challenge of this task involves cell adhesion, cell distortion, unclear cell contours, low-contrast cell protrusion structures, and background impurities. Consequently, current instance segmentation methods generally fall short of precision. In this paper, we propose an attentive instance segmentation method that accurately predicts the bounding box of each cell as well as its segmentation mask simultaneously. In particular, our method builds on a joint network that combines a single shot multi-box detector (SSD) and a U-net. Furthermore, we employ the attention mechanism in both detection and segmentation modules to focus the model on the useful features. The proposed method is validated on a dataset of neural cell microscopic images. Experimental results demonstrate that our approach can accurately detect and segment neural cell instances at a fast speed, comparing favorably with the state-of-the-art methods. Our code is released on GitHub. The link is https://github.com/yijingru/ANCIS-Pytorch.},
+author = {Yi, Jingru and Wu, Pengxiang and Jiang, Menglin and Huang, Qiaoying and Hoeppner, Daniel J. and Metaxas, Dimitris N.},
+doi = {10.1016/J.MEDIA.2019.05.004},
+journal = {Medical Image Analysis},
+keywords = {Cell detection,Cell segmentation,Instance segmentation,Neural cell},
+month = {jul},
+pages = {228--240},
+publisher = {Elsevier B.V.},
+title = {{Attentive neural cell instance segmentation}},
+volume = {55},
+year = {2019}
+}
+@article{Koohbanani2020,
+abstract = {Object segmentation is an important step in the workflow of computational
+pathology. Deep learning based models generally require large amount of labeled
+data for precise and reliable prediction. However, collecting labeled data is
+expensive because it often requires expert knowledge, particularly in medical
+imaging domain where labels are the result of a time-consuming analysis made by
+one or more human experts. As nuclei, cells and glands are fundamental objects
+for downstream analysis in computational pathology/cytology, in this paper we
+propose a simple CNN-based approach to speed up collecting annotations for
+these objects which requires minimum interaction from the annotator. We show
+that for nuclei and cells in histology and cytology images, one click inside
+each object is enough for NuClick to yield a precise annotation. For
+multicellular structures such as glands, we propose a novel approach to provide
+the NuClick with a squiggle as a guiding signal, enabling it to segment the
+glandular boundaries. These supervisory signals are fed to the network as
+auxiliary inputs along with RGB channels. With detailed experiments, we show
+that NuClick is adaptable to the object scale, robust against variations in the
+user input, adaptable to new domains, and delivers reliable annotations. An
+instance segmentation model trained on masks generated by NuClick achieved the
+first rank in LYON19 challenge. As exemplar outputs of our framework, we are
+releasing two datasets: 1) a dataset of lymphocyte annotations within IHC
+images, and 2) a dataset of segmented WBCs in blood smear images.},
+archivePrefix = {arXiv},
+arxivId = {2005.14511},
+author = {Koohbanani, Navid Alemi and Jahanifar, Mostafa and Tajadin, Neda Zamani and Rajpoot, Nasir},
+eprint = {2005.14511},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Koohbanani et al. - 2020 - NuClick A Deep Learning Framework for Interactive Segmentation of Microscopy Images.pdf:pdf},
+journal = {Medical Image Analysis},
+keywords = {Annotation,Cell segmentation,Computational pathology,Deep learning,Gland segmentation,Interactive segmentation,Nuclear segmentation},
+month = {may},
+publisher = {Elsevier B.V.},
+title = {{NuClick: A Deep Learning Framework for Interactive Segmentation of Microscopy Images}},
+url = {https://arxiv.org/abs/2005.14511v2},
+volume = {65},
+year = {2020}
+}
+@article{Tokuoka2020,
+abstract = {During embryogenesis, cells repeatedly divide and dynamically change their positions in three-dimensional (3D) space. A robust and accurate algorithm to acquire the 3D positions of the cells would help to reveal the mechanisms of embryogenesis. To acquire quantitative criteria of embryogenesis from time-series 3D microscopic images, image processing algorithms such as segmentation have been applied. Because the cells in embryos are considerably crowded, an algorithm to segment individual cells in detail and accurately is needed. To quantify the nuclear region of every cell from a time-series 3D fluorescence microscopic image of living cells, we developed QCANet, a convolutional neural network-based segmentation algorithm for 3D fluorescence bioimages. We demonstrated that QCANet outperformed 3D Mask R-CNN, which is currently considered as the best algorithm of instance segmentation. We showed that QCANet can be applied not only to developing mouse embryos but also to developing embryos of two other model species. Using QCANet, we were able to extract several quantitative criteria of embryogenesis from 11 early mouse embryos. We showed that the extracted criteria could be used to evaluate the differences between individual embryos. This study contributes to the development of fundamental approaches for assessing embryogenesis on the basis of extracted quantitative criteria.},
+author = {Tokuoka, Yuta and Yamada, Takahiro G. and Mashiko, Daisuke and Ikeda, Zenki and Hiroi, Noriko F. and Kobayashi, Tetsuya J. and Yamagata, Kazuo and Funahashi, Akira},
+doi = {10.1038/s41540-020-00152-8},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Tokuoka et al. - 2020 - 3D convolutional neural networks-based segmentation to acquire quantitative criteria of the nucleus during mouse.pdf:pdf},
+issn = {20567189},
+journal = {npj Systems Biology and Applications},
+keywords = {Developmental biology,Software},
+month = {dec},
+number = {1},
+pages = {1--12},
+pmid = {33082352},
+publisher = {Nature Research},
+title = {{3D convolutional neural networks-based segmentation to acquire quantitative criteria of the nucleus during mouse embryogenesis}},
+url = {https://doi.org/10.1038/s41540-020-00152-8},
+volume = {6},
+year = {2020}
+}
+@article{Englbrecht2021,
+abstract = {Dataset annotation is a time and labor-intensive task and an integral requirement for training and testing deep learning models. The segmentation of images in life science microscopy requires annotated image datasets for object detection tasks such as instance segmentation. Although the amount of annotated image data has been steadily reduced due to methods such as data augmentation, the process of manual or semi-automated data annotation is the most labor and cost intensive task in the process of cell nuclei segmentation with deep neural networks. In this work we propose a system to fully automate the annotation process of a custom fluorescent cell nuclei image dataset. By that we are able to reduce nuclei labelling time by up to 99.5%. The output of our system provides high quality training data for machine learning applications to identify the position of cell nuclei in microscopy images. Our experiments have shown that the automatically annotated dataset provides coequal segmentation performance compared to manual data annotation. In addition, we show that our system enables a single workflow from raw data input to desired nuclei segmentation and tracking results without relying on pre-trained models or third-party training datasets for neural networks.},
+author = {Englbrecht, Fabian and Ruider, Iris E. and Bausch, Andreas R.},
+doi = {10.1371/JOURNAL.PONE.0250093},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Englbrecht, Ruider, Bausch - 2021 - Automatic image annotation for fluorescent cell nuclei segmentation.pdf:pdf},
+issn = {1932-6203},
+journal = {PLOS ONE},
+keywords = {Deep learning,Fluorescence imaging,Imaging techniques,In vivo imaging,Memory recall,Neural networks,Red nucleus,Supervised machine learning},
+month = {apr},
+number = {4},
+pages = {e0250093},
+publisher = {Public Library of Science},
+title = {{Automatic image annotation for fluorescent cell nuclei segmentation}},
+url = {https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0250093},
+volume = {16},
+year = {2021}
+}
+@article{Weigert2019,
+abstract = {Accurate detection and segmentation of cell nuclei in volumetric (3D) fluorescence microscopy datasets is an important step in many biomedical research projects. Although many automated methods for these tasks exist, they often struggle for images with low signal-to-noise ratios and/or dense packing of nuclei. It was recently shown for 2D microscopy images that these issues can be alleviated by training a neural network to directly predict a suitable shape representation (star-convex polygon) for cell nuclei. In this paper, we adopt and extend this approach to 3D volumes by using star-convex polyhedra to represent cell nuclei and similar shapes. To that end, we overcome the challenges of 1) finding parameter-efficient star-convex polyhedra representations that can faithfully describe cell nuclei shapes, 2) adapting to anisotropic voxel sizes often found in fluorescence microscopy datasets, and 3) efficiently computing intersections between pairs of star-convex polyhedra (required for non-maximum suppression). Although our approach is quite general, since star-convex polyhedra include common shapes like bounding boxes and spheres as special cases, our focus is on accurate detection and segmentation of cell nuclei. Finally, we demonstrate on two challenging datasets that our approach (StarDist-3D) leads to superior results when compared to classical and deep learning based methods.},
+archivePrefix = {arXiv},
+arxivId = {1908.03636},
+author = {Weigert, Martin and Schmidt, Uwe and Haase, Robert and Sugawara, Ko and Myers, Gene},
+doi = {10.1109/WACV45572.2020.9093435},
+eprint = {1908.03636},
+journal = {Proceedings - 2020 IEEE Winter Conference on Applications of Computer Vision, WACV 2020},
+month = {aug},
+pages = {3655--3662},
+publisher = {Institute of Electrical and Electronics Engineers Inc.},
+title = {{Star-convex Polyhedra for 3D Object Detection and Segmentation in Microscopy}},
+url = {http://arxiv.org/abs/1908.03636 http://dx.doi.org/10.1109/WACV45572.2020.9093435},
+year = {2019}
+}
+@article{Bai2016,
+abstract = {Most contemporary approaches to instance segmentation use complex pipelines involving conditional random fields, recurrent neural networks, object proposals, or template matching schemes. In our paper, we present a simple yet powerful end-to-end convolutional neural network to tackle this task. Our approach combines intuitions from the classical watershed transform and modern deep learning to produce an energy map of the image where object instances are unambiguously represented as basins in the energy map. We then perform a cut at a single energy level to directly yield connected components corresponding to object instances. Our model more than doubles the performance of the state-of-the-art on the challenging Cityscapes Instance Level Segmentation task.},
+archivePrefix = {arXiv},
+arxivId = {1611.08303},
+author = {Bai, Min and Urtasun, Raquel},
+eprint = {1611.08303},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Bai, Urtasun - 2016 - Deep Watershed Transform for Instance Segmentation.pdf:pdf},
+journal = {Proceedings - 30th IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2017},
+month = {nov},
+pages = {2858--2866},
+publisher = {Institute of Electrical and Electronics Engineers Inc.},
+title = {{Deep Watershed Transform for Instance Segmentation}},
+url = {http://arxiv.org/abs/1611.08303},
+volume = {2017-Janua},
+year = {2016}
+}
+@article{Walter2020,
+abstract = {Instance segmentation of overlapping objects in biomedical images remains a
+largely unsolved problem. We take up this challenge and present MultiStar, an
+extension to the popular instance segmentation method StarDist. The key novelty
+of our method is that we identify pixels at which objects overlap and use this
+information to improve proposal sampling and to avoid suppressing proposals of
+truly overlapping objects. This allows us to apply the ideas of StarDist to
+images with overlapping objects, while incurring only a small overhead compared
+to the established method. MultiStar shows promising results on two datasets
+and has the advantage of using a simple and easy to train network architecture.},
+archivePrefix = {arXiv},
+arxivId = {2011.13228},
+author = {Walter, Florin C. and Damrich, Sebastian and Hamprecht, Fred A.},
+eprint = {2011.13228},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Walter, Damrich, Hamprecht - 2020 - MultiStar Instance Segmentation of Overlapping Objects with Star-Convex Polygons.pdf:pdf},
+journal = {Proceedings - International Symposium on Biomedical Imaging},
+keywords = {Deep learning,Instance segmentation,Overlapping objects,Star-convex polygons},
+month = {nov},
+pages = {295--298},
+publisher = {IEEE Computer Society},
+title = {{MultiStar: Instance Segmentation of Overlapping Objects with Star-Convex Polygons}},
+url = {https://arxiv.org/abs/2011.13228v2},
+volume = {2021-April},
+year = {2020}
+}
+@article{Chen2016,
+abstract = {The morphology of glands has been used routinely by pathologists to assess
+the malignancy degree of adenocarcinomas. Accurate segmentation of glands from
+histology images is a crucial step to obtain reliable morphological statistics
+for quantitative diagnosis. In this paper, we proposed an efficient deep
+contour-aware network (DCAN) to solve this challenging problem under a unified
+multi-task learning framework. In the proposed network, multi-level contextual
+features from the hierarchical architecture are explored with auxiliary
+supervision for accurate gland segmentation. When incorporated with multi-task
+regularization during the training, the discriminative capability of
+intermediate features can be further improved. Moreover, our network can not
+only output accurate probability maps of glands, but also depict clear contours
+simultaneously for separating clustered objects, which further boosts the gland
+segmentation performance. This unified framework can be efficient when applied
+to large-scale histopathological data without resorting to additional steps to
+generate contours based on low-level cues for post-separating. Our method won
+the 2015 MICCAI Gland Segmentation Challenge out of 13 competitive teams,
+surpassing all the other methods by a significant margin.},
+archivePrefix = {arXiv},
+arxivId = {1604.02677},
+author = {Chen, Hao and Qi, Xiaojuan and Yu, Lequan and Heng, Pheng-Ann},
+eprint = {1604.02677},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Chen et al. - 2016 - DCAN Deep Contour-Aware Networks for Accurate Gland Segmentation.pdf:pdf},
+journal = {Proceedings of the IEEE Computer Society Conference on Computer Vision and Pattern Recognition},
+month = {apr},
+pages = {2487--2496},
+publisher = {IEEE Computer Society},
+title = {{DCAN: Deep Contour-Aware Networks for Accurate Gland Segmentation}},
+url = {https://arxiv.org/abs/1604.02677v1},
+volume = {2016-December},
+year = {2016}
+}
+@article{Molnar2016,
+abstract = {The identification of fluorescently stained cell nuclei is the basis of cell detection, segmentation, and feature extraction in high content microscopy experiments. The nuclear morphology of single cells is also one of the essential indicators of phenotypic variation. However, the cells used in experiments can lose their contact inhibition, and can therefore pile up on top of each other, making the detection of single cells extremely challenging using current segmentation methods. The model we present here can detect cell nuclei and their morphology even in high-confluency cell cultures with many overlapping cell nuclei. We combine the “gas of near circles” active contour model, which favors circular shapes but allows slight variations around them, with a new data model. This captures a common property of many microscopic imaging techniques: the intensities from superposed nuclei are additive, so that two overlapping nuclei, for example, have a total intensity that is approximately double the intensity of a single nucleus. We demonstrate the power of our method on microscopic images of cells, comparing the results with those obtained from a widely used approach, and with manual image segmentations by experts.},
+author = {Molnar, Csaba and Jermyn, Ian H. and Kato, Zoltan and Rahkama, Vesa and {\"{O}}stling, P{\"{a}}ivi and Mikkonen, Piia and Pieti{\"{a}}inen, Vilja and Horvath, Peter},
+doi = {10.1038/srep32412},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Molnar et al. - 2016 - Accurate Morphology Preserving Segmentation of Overlapping Cells based on Active Contours.pdf:pdf},
+issn = {2045-2322},
+journal = {Scientific Reports 2016 6:1},
+keywords = {Computational models,Data processing,Image processing},
+month = {aug},
+number = {1},
+pages = {1--10},
+publisher = {Nature Publishing Group},
+title = {{Accurate Morphology Preserving Segmentation of Overlapping Cells based on Active Contours}},
+url = {https://www.nature.com/articles/srep32412},
+volume = {6},
+year = {2016}
+}
+@article{Dunn2019,
+abstract = {The scale of biological microscopy has increased dramatically over the past ten years, with the development of new modalities supporting collection of high-resolution fluorescence image volumes spanning hundreds of microns if not millimeters. The size and complexity of these volumes is such that quantitative analysis requires automated methods of image processing to identify and characterize individual cells. For many workflows, this process starts with segmentation of nuclei that, due to their ubiquity, ease-of-labeling and relatively simple structure, make them appealing targets for automated detection of individual cells. However, in the context of large, three-dimensional image volumes, nuclei present many challenges to automated segmentation, such that conventional approaches are seldom effective and/or robust. Techniques based upon deep-learning have shown great promise, but enthusiasm for applying these techniques is tempered by the need to generate training data, an arduous task, particularly in three dimensions. Here we present results of a new technique of nuclear segmentation using neural networks trained on synthetic data. Comparisons with results obtained using commonly-used image processing packages demonstrate that DeepSynth provides the superior results associated with deep-learning techniques without the need for manual annotation.},
+author = {Dunn, Kenneth W. and Fu, Chichen and Ho, David Joon and Lee, Soonam and Han, Shuo and Salama, Paul and Delp, Edward J.},
+doi = {10.1038/s41598-019-54244-5},
+file = {:C\:/Users/mbenimam/AppData/Local/Mendeley Ltd./Mendeley Desktop/Downloaded/Dunn et al. - 2019 - DeepSynth Three-dimensional nuclear segmentation of biological images using neural networks trained with synthetic.pdf:pdf},
+issn = {2045-2322},
+journal = {Scientific Reports 2019 9:1},
+keywords = {Fluorescence imaging,Image processing},
+month = {dec},
+number = {1},
+pages = {1--15},
+publisher = {Nature Publishing Group},
+title = {{DeepSynth: Three-dimensional nuclear segmentation of biological images using neural networks trained with synthetic data}},
+url = {https://www.nature.com/articles/s41598-019-54244-5},
+volume = {9},
+year = {2019}
+}
+@article{Singh2020,
+author = {Singh, Rishipal and Rani, Rajneesh},
+doi = {10.2139/SSRN.3565919},
+file = {:E\:/stuff/study/Master 2/PRAT/papers/reviewSemanticSeg.pdf:pdf},
+journal = {SSRN Electronic Journal},
+keywords = {Autoencoder,Computer Vision,DCNNs,Deep Convolutional Neural Network,Deep Learning,Rajneesh Rani,Rishipal Singh,SSRN,Semantic Segmentation,Semantic Segmentation using Deep Convolutional Neu},
+month = {apr},
+publisher = {Elsevier BV},
+title = {{Semantic Segmentation using Deep Convolutional Neural Network: A Review}},
+url = {https://papers.ssrn.com/abstract=3565919},
+year = {2020}
+}
