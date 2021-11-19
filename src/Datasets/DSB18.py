@@ -12,9 +12,12 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms, utils
 from torch import nn
+# from torchvision.transforms import (RandomHorizontalFlip, Normalize, Resize, Compose)
 from albumentations import (HorizontalFlip, ShiftScaleRotate, Normalize, Resize, Compose, GaussNoise)
+from albumentations.pytorch import ToTensorV2
+
 import cv2
-from albumentations.pytorch import ToTensor
+# from torchvision.transforms import 
 from torch.autograd import Variable
 from torch.nn import Linear, ReLU, CrossEntropyLoss, Sequential, Conv2d, MaxPool2d, Module, Softmax, BatchNorm2d, Dropout
 from torch.optim import Adam, SGD
@@ -35,8 +38,8 @@ def get_transforms(mean, std):
                     ])
             list_transforms.extend(
                     [
-            Normalize(mean=mean, std=std, p=1),
-            ToTensor(),
+            Normalize(mean=mean, std=std),
+            ToTensorV2(),
                     ])
             list_trfms = Compose(list_transforms)
             return list_trfms
@@ -65,7 +68,8 @@ class Nuclie_data(Dataset):
             augmented = self.transforms(image=img, mask=mask)
             img = augmented['image']
             mask = augmented['mask']
-            mask = mask[0].permute(2, 0, 1)
+            #print(mask.shape)
+            mask = mask.permute(2, 0, 1)
             return (img,mask) 
 
 
@@ -100,20 +104,25 @@ def image_convert(image):
     image = (image * 255).astype(np.uint8)
     return image
 
-def plot_img(no_, loader):
-    iter_ = iter(loader)
-    images,masks = next(iter_)
-    images = images.to(device)
-    masks = masks.to(device)
-    plt.figure(figsize=(10,6))
-    for idx in range(0,no_):
-         image = image_convert(images[idx])
-         plt.subplot(2,no_,idx+1)
-         plt.title('image')
-         plt.imshow(image)
-    for idx in range(0,no_):
-         mask = mask_convert(masks[idx])
-         plt.subplot(2,no_,idx+no_+1)
-         plt.title('mask')
-         plt.imshow(mask,cmap='gray')
+def plot_img(no_, dataset):
+    #iter_ = iter(loader)
+    #images,masks = next(iter_)
+    # images = images.to(device)
+    # masks = masks.to(device)
+
+    idx = np.arange(len(dataset))
+    np.random.shuffle(idx)
+
+    fig, axes = plt.subplots(nrows=2, ncols=no_, figsize=(20,10))
+    for i, id in enumerate(idx[:no_]):
+        image, mask = dataset[id]
+        image = image_convert(image)
+        mask = mask_convert(mask)
+
+        axes[0][i].set_title('image')
+        axes[0][i].imshow(image)
+        axes[1][i].set_title('mask')
+        axes[1][i].imshow(mask,cmap='gray')
+
+    fig.tight_layout()
     plt.show()

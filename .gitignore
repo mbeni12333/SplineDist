@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+src/Datasets/DSB18/*
 
 # C extensions
 *.so
