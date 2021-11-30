@@ -46,6 +46,43 @@ def get_transforms(mean, std):
     list_trfms = Compose(list_transforms)
     return list_trfms
 
+############## Helper Functions ##############
+
+
+def computeDistTransform(img):
+    """
+    Compute the distance transform of a binary image
+    :param img: binary image
+    :return: distance transform
+    """
+
+    dist = cv2.distanceTransform(img.astype(np.uint8), cv2.DIST_L2, 5)
+    # normalize the distance transform
+    dist = cv2.normalize(dist, None, 0, 1, cv2.NORM_MINMAX)
+
+    return dist
+
+
+# vectorized_computeDistTransform = np.vectorize(
+#     computeDistTransform, signature='(n),(m),()->(k)')
+
+
+def computeContours(img):
+    """
+    Compute the contours of a binary image using the Satoshii algorithm.
+    :param img: binary image
+    :return: contours
+    """
+    contours, _ = cv2.findContours((img*255).astype(np.uint8),
+                                   mode=cv2.RETR_LIST,
+                                   method=cv2.CHAIN_APPROX_NONE)
+    return contours
+
+
+# vectorized_computeDistTransform = np.vectorize(computeContours)
+
+##############################################
+
 
 class Nuclie_data(Dataset):
     def __init__(self, path):
@@ -62,78 +99,75 @@ class Nuclie_data(Dataset):
         image_path = os.path.join(image_folder, os.listdir(image_folder)[0])
 
         img = io.imread(image_path)[:, :, :3].astype('float32')
-        img = transform.resize(img, (128, 128))
+        img = transform.resize(img, (256, 256))
 
-        mask = self.get_mask(mask_folder, 128, 128).astype('float32')
-
+        (objectProbas, overlapProba, objectContours, mask, masks) = self.get_mask(
+            mask_folder, 256, 256)
+        # mask = mask.astype(np.uint8)
+        # mask = mask.astype(np.uint8)
         augmented = self.transforms(image=img, mask=mask)
         img = augmented['image']
         mask = augmented['mask']
+
+        target = {}
+        target["objectProbas"] = objectProbas
+        target["overlapProba"] = overlapProba
+        target["objectContours"] = objectContours
+        target["mask"] = mask
+        target["masks"] = masks
+
         # print(mask.shape)
-        mask = mask.permute(2, 0, 1)
-        return (img, mask)
+        # mask = mask.permute(2, 0, 1)
+        return img, target
 
     def get_mask(self, mask_folder, IMG_HEIGHT, IMG_WIDTH):
-        mask = np.zeros((IMG_HEIGHT, IMG_WIDTH, 1), dtype=np.bool)
-        for mask_ in os.listdir(mask_folder):
-            mask_ = io.imread(os.path.join(mask_folder, mask_))
-            mask_ = transform.resize(mask_, (IMG_HEIGHT, IMG_WIDTH))
-            mask_ = np.expand_dims(mask_, axis=-1)
-            mask = np.maximum(mask, mask_)
+        """
+        Get the mask of a given image from the mask folder of the dataset
+        :param mask_folder: path to the mask folder
+        :param IMG_HEIGHT: height of the image
+        :param IMG_WIDTH: width of the image
+        :return: mask
+        """
+        # objectProbas = np.zeros((IMG_HEIGHT, IMG_WIDTH, 1), dtype=(np.uint8))
+        # overlapProba = np.zeros((IMG_HEIGHT, IMG_WIDTH, 1), dtype=(np.uint8))
+        objectContours = []
+        # mask = np.zeros((IMG_HEIGHT, IMG_WIDTH, 1), dtype=(np.uint8))
 
-        return mask
+        masks = np.stack([transform.resize(io.imread(os.path.join(mask_folder, mask_)).astype(np.uint8), (IMG_HEIGHT, IMG_WIDTH), 0)
+                          for mask_ in os.listdir(mask_folder)], axis=0).astype(np.float32)  # read all masks
 
+        # mask = vectorized_computeDistTransform(masks)
 
-def mask_convert(mask):
-    mask = mask.clone().cpu().detach().numpy()
-    mask = mask.transpose((1, 2, 0))
-    std = np.array((0.5))
-    mean = np.array((0.5))
-    mask = std * mask + mean
-    mask = mask.clip(0, 1)
-    mask = np.squeeze(mask)
-    return mask
+        #
+        overlapProba = np.sum(masks, axis=0) > 1.0
+        objectProbas = np.max(np.stack(tuple(computeDistTransform(
+            masks[i]) for i in range(masks.shape[0])), axis=0), axis=0)
+        mask = np.max(masks, axis=0)
+        objectContours = [computeContours(masks[i])[0].reshape(-1, 2)
+                          for i in range(masks.shape[0])]
 
-# converting tensor to image
-
-
-def image_convert(image):
-    image = image.clone().cpu().numpy()
-    image = image.transpose((1, 2, 0))
-    std = np.array((0.5, 0.5, 0.5))
-    mean = np.array((0.5, 0.5, 0.5))
-    image = std * image + mean
-    image = image.clip(0, 1)
-    image = (image * 255).astype(np.uint8)
-    return image
+        return (objectProbas, overlapProba, objectContours, mask, masks)
 
 
-def plot_img(no_, dataset):
-    # iter_ = iter(loader)
-    # images,masks = next(iter_)
-    # images = images.to(device)
-    # masks = masks.to(device)
+def collate_fn(batch):
 
-    idx = np.arange(len(dataset))
-    np.random.shuffle(idx)
+    images, targets, = [], []
+    for (img, target) in batch:
+        images.append(img)
+        targets.append(target)
 
-    fig, axes = plt.subplots(nrows=2, ncols=no_, figsize=(20, 10))
-    for i, id in enumerate(idx[:no_]):
-        image, mask = dataset[id]
-        image = image_convert(image)
-        mask = mask_convert(mask)
+    images = torch.stack(images, dim=0)
 
-        axes[0][i].set_title('image')
-        axes[0][i].imshow(image)
-        axes[1][i].set_title('mask')
-        axes[1][i].imshow(mask, cmap='gray')
+    return images, targets
 
-    fig.tight_layout()
-    plt.show()
+
+# def collate_fn(batch):
+#     return tuple(zip(*batch))
 
 
 class Nuclie_datamodule(pl.LightningDataModule):
     """
+    Datamonodule for Nuclei dataset
     """
 
     def __init__(self):
@@ -148,7 +182,7 @@ class Nuclie_datamodule(pl.LightningDataModule):
     def train_dataloader(self):
         train_dataset = Nuclie_data(
             path=os.path.join(os.path.dirname(__file__), "DSB18/train"))
-        return DataLoader(train_dataset, batch_size=32, shuffle=True)
+        return DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=collate_fn)
 
     # def val_dataloader(self):
     #     val_dataset = Nuclie_data(
