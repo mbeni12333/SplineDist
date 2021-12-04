@@ -3,7 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 src/Datasets/DSB18/*
-src/pl_logs
+src/pl_logs/*
+pl_logs/*
 # C extensions
 *.so
 
