@@ -1,0 +1,200 @@
+\documentclass[a4paper, 12pt]{report}
+
+% Formatting
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+
+\usepackage[authoryear,round,longnamesfirst]{natbib}
+
+\usepackage[Glenn]{fncychap}
+\usepackage{titling}
+
+\usepackage{indentfirst}
+\usepackage{lipsum}
+\usepackage{subfiles}
+\usepackage{amsmath,amsfonts,amssymb,mathtools}
+\usepackage{graphicx,float}
+\usepackage{lipsum}
+\usepackage{multicol}
+\usepackage{placeins}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage[acronym]{glossaries}
+\usepackage[titletoc]{appendix}
+\usepackage{import}
+\usepackage{float}
+\usepackage[rightlabels]{titletoc}
+\renewcommand{\thechapter}{\Roman{chapter}}
+
+\usepackage[colorlinks = true,
+            linkcolor = black,
+            urlcolor  = red,
+            citecolor = blue,
+            anchorcolor = blue]{hyperref}
+            
+\setcitestyle{square}
+
+
+\selectfont
+\usepackage[tableposition=top]{caption}
+\makeatletter
+\newcommand{\captionabove}[2][]{%
+    \vskip-\abovecaptionskip
+    \vskip+\belowcaptionskip
+    \ifx\@nnil#1\@nnil
+        \caption{#2}%
+    \else
+        \caption[#1]{#2}%
+    \fi
+    \vskip+\abovecaptionskip
+    \vskip-\belowcaptionskip
+}
+
+% If \captionof is required:
+% Usage: \captionaboveof[<short caption>]{table}{<caption>}
+\newcommand{\captionaboveof}[3][]{%
+    \vskip-\abovecaptionskip
+    \vskip+\belowcaptionskip
+    \def\@captype{#2}%
+    \ifx\@nnil#1\@nnil
+        \caption{#3}%
+    \else
+        \caption[#1]{#3}%
+    \fi
+    \vskip+\abovecaptionskip
+    \vskip-\belowcaptionskip
+}
+\makeatother
+
+
+
+
+\usepackage[english]{babel}
+\usepackage{fancyhdr}
+\graphicspath{{images/}}
+
+
+
+
+\usepackage{subfiles} % Best loaded last in the preamble
+
+
+
+\usepackage{hyperref}
+
+\makeatletter
+\newcommand{\addloflink}[1]{% \addloflink{<URL>}
+  \addtocontents{lof}{\begingroup\def\protect\@dotsep{10000}% Remove dots in LoF for this entry
+    \protect\contentsline{figlink}{\protect\numberline{}\url{#1}}{}{}%
+    \endgroup}% Restore dots in LoF for future entries
+}
+\newcommand{\l@figlink}{\@dottedtocline{1}{1.5em}{2.3em}}
+\makeatother
+
+
+\begin{document}
+
+%\maketitle
+\begin{titlepage} 
+	\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for horizontal lines, change thickness here
+	\center % Centre everything on the page
+	%------------------------------------------------
+	%	Headings
+	%------------------------------------------------
+	
+	%\textsc{\LARGE Sorbonne université}\\ % Main heading such as the name of your university/college
+    \includegraphics[width=0.4\textwidth]{logo.png}
+	\vfill
+	\textsc{\large{ \textbf{M2 Computer science, PRAT}\\[0.5cm] }} % Major heading such as course name
+	
+	%------------------------------------------------
+	%	Title
+	%------------------------------------------------
+	
+	\HRule\\[0.4cm]
+	
+	{\LARGE\bfseries SplineDist: Automated Cell Segmentation with Spline Curves}\\[0.1cm] % Title of your document
+	
+	\HRule\\[1.5cm]
+	
+	%------------------------------------------------
+	%	Author(s)
+	%------------------------------------------------
+	
+	\begin{minipage}{0.45\textwidth}
+		\begin{flushleft}
+			\large
+			\textit{Student}\\
+			Mohamed Mounib \textsc{Benimam}
+		\end{flushleft}
+	\end{minipage}
+    ~~
+	\begin{minipage}{0.45\textwidth}
+		\begin{flushright}
+			\large
+			\textit{Supervisor}\\
+			Vannary Meas-Yedid
+		\end{flushright}
+	\end{minipage}
+	
+	
+	\vfill\vfill\vfill % Position the date 3/4 d own the remaining page
+	
+	{\large\today} 
+	
+	
+	\vfill 
+	
+\end{titlepage}
+
+% \subfile{sections/remerciment.tex}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\newpage
+
+\subfile{sections/context.tex}
+\subfile{sections/abstract.tex}
+\subfile{sections/introduction.tex}
+\subfile{sections/previous.tex}
+\subfile{sections/methodology.tex}
+\subfile{sections/implementation.tex}
+\subfile{sections/experimentation.tex}
+\subfile{sections/discussion.tex}
+\subfile{sections/conclusion.tex}
+
+
+\chapter{Project Plan}
+\begin{itemize}
+    \item \textbf{19-11-2021} Implement basic SplineDist/StarDist and Train on different modalities using DSB 2018 dataset.
+    \item \textbf{19-11-2021} Experiment on different backbones.
+    \item \textbf{26-11-2021} Implement SplineMultidist (the improvement proposed in the introduction)
+    \item \textbf{26-11-2021} Write Methodology part of the report explaining more in detail computations and routines used in the final model.
+    \item \textbf{26-11-2021} Write Experimentation part of the report detailing the experimental setup, metrics and hyperparameter tuning, 
+    \item \textbf{3-12-2021} Start Coding the Icy plugin
+    \item \textbf{17-12-2021} Further experiments in ICY
+    \item \textbf{17-12-2021} Write Results part of the report detailing the observations and comparing to Cellpose and maskrcnn and stardist
+    \item \textbf{20-12-2021} Write Discussion part of the report
+    \item \textbf{20-12-2021} Write Conclusion part of the report
+    \item \textbf{24-12-2021} Implement Min cost Flow max assignment problem of the cells identity in different slices of 3d microscopy / experiment on 3d Data
+    \item \textbf{7-01-2022} Revision
+    \item \textbf{14-01-2022} Presentation
+    \item \textbf{21-01-2022} Final DeadLine
+\end{itemize}
+
+
+\bibliographystyle{ieeetr}
+\newpage
+
+\bibliography{ref.bib}
+
+
+
+% \appendix
+% \subfile{sections/furtherresults.tex}
+
+\end{document}

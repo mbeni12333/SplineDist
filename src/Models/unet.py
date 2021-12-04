@@ -45,10 +45,12 @@ class Up(nn.Module):
 
         # if bilinear, use the normal convolutions to reduce the number of channels
         if bilinear:
-            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            self.up = nn.Upsample(
+                scale_factor=2, mode='bilinear', align_corners=True)
             self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
         else:
-            self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
+            self.up = nn.ConvTranspose2d(
+                in_channels, in_channels // 2, kernel_size=2, stride=2)
             self.conv = DoubleConv(in_channels, out_channels)
 
     def forward(self, x1, x2):
@@ -74,6 +76,7 @@ class OutConv(nn.Module):
     def forward(self, x):
         return self.conv(x)
 
+
 class UNet(nn.Module):
     def __init__(self, n_channels=3, n_classes=1, bilinear=True):
         super(UNet, self).__init__()
@@ -91,8 +94,9 @@ class UNet(nn.Module):
         self.up2 = Up(512, 256 // factor, bilinear)
         self.up3 = Up(256, 128 // factor, bilinear)
         self.up4 = Up(128, 64, bilinear)
-        self.outf = nn.Conv2d(64, 128, kernel_size=3)
+        self.outf = nn.Conv2d(64, 128, kernel_size=3, padding="same")
         self.outc = OutConv(64, n_classes)
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
         x1 = self.inc(x)
@@ -104,5 +108,5 @@ class UNet(nn.Module):
         x = self.up2(x, x3)
         x = self.up3(x, x2)
         x = self.up4(x, x1)
-        x = F.relu(self.outf(x))
+        x = self.relu(self.outf(x))
         return x
