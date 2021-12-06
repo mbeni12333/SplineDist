@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import transforms
 import cv2
+import colorsys
 from skimage import exposure
 
 
@@ -27,8 +28,15 @@ def getRandomColor():
     :return: an array of 3 random values between 0 and 255
     """
     color = np.random.randint(30, 255, size=3)
-    color = (int(color[0]), int(color[1]), int(color[2]))
-    return color
+    h, s, l = np.random.random(
+        size=3)/np.array([1.0, 2.0, 5.0]) + np.array([0.0, 0.5, 0.4])
+    # random.random(), 0.5 + random.random()/2.0, 0.4 + random.random()/5.0
+    # r, g, b = colorsys.hls_to_rgb(h, l, s)
+    r, g, b = [int(256*i) for i in colorsys.hls_to_rgb(h, l, s)]
+    # colorsys.hsv_to_rgb()
+    # color = (int(color[0]), int(color[1]), int(color[2]))
+    # return color
+    return (r, g, b)
 
 
 def getInstancesImageFromContours(contours, shape=(256, 256), color=None):
@@ -38,11 +46,10 @@ def getInstancesImageFromContours(contours, shape=(256, 256), color=None):
     :return: the instances image
     """
     image = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
-    for contour in contours:
-        color = getRandomColor()
-        # print(contour.shape, contour.dtype, contour.min(), contour.max())
-        cv2.fillPoly(image, pts=[contour], color=color)
-    return image
+    colors = [getRandomColor() for i in range(len(contours))]
+    for i, contour in enumerate(contours):
+        cv2.fillPoly(image, pts=[contour], color=colors[i])
+    return image, colors
 
 
 def sampleBsplineFromControlPoints(controlPoints, numSamples, degree=3):
@@ -119,9 +126,23 @@ def showBatch(batch):
     for item in range(len(batch_x)):
 
         img = batch_x[item]
+        img = denormalize(img).permute(1, 2, 0).clamp(0, 1).numpy()
 
         (objectProbas, overlapProba, objectContours,
             mask) = batch_y[item].values()
+
+        mask = mask.numpy().copy()
+        # im_floodfill = mask
+        # # Mask used to flood filling.
+        # # Notice the size needs to be 2 pixels than the image.
+        # h, w = im_floodfill.shape[:2]
+        # mask2 = np.zeros((h+2, w+2), np.uint8)
+        # # Invert floodfilled image
+        # cv2.floodFill(im_floodfill, mask2, (0, 0), 255)
+
+        # im_floodfill_inv = cv2.bitwise_not(im_floodfill)
+        # # Combine the two images to get the foreground.
+        # new_mask = mask | im_floodfill_inv
 
         # plt.figure(figsize=(20, 10))
         fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(
@@ -129,28 +150,33 @@ def showBatch(batch):
 
         # plt.subplot(1,4,1)
         ax1.set_title("Original Image")
-        ax1.imshow(denormalize(img).permute(1, 2, 0).clamp(0, 1))
+        ax1.imshow(img)
 
         ax2.set_title("Image With Adaptive histogram Equalization")
-        eq = exposure.equalize_adapthist((denormalize(img).permute(
-            1, 2, 0).clamp(0, 1).numpy()*256).astype(np.uint8), clip_limit=0.03)
+        eq = exposure.equalize_adapthist(img, clip_limit=0.03)
         ax2.imshow(np.clip(eq, 0, 1))
         # plt.subplot(1,4,2)
         ax3.set_title("Object Probabilities")
-        print(objectProbas.min(), objectProbas.max(), objectProbas.ptp())
-        ax3.imshow(objectProbas.clip(0, 1), cmap='gnuplot2')
+        # print(objectProbas.min(), objectProbas.max(), objectProbas.ptp())
+        ax3.imshow(objectProbas, cmap='gnuplot2')
         # print(objectProbas.max())
         #ax2.hist(objectProbas[objectProbas > 0].flatten(), bins=100)
         # plt.subplot(1,4,3)
-        ax5.set_title("Overlap Probabilities")
-        ax5.imshow(overlapProba.clip(0, 1), cmap='gnuplot2')
+
         # show overlap histogram
         #ax3.hist(overlapProba.flatten(), bins=100)
 
         # plt.subplot(1,4,4)
         ax4.set_title("Object Instances")
-        instances = getInstancesImageFromContours(objectContours)
-        ax4.imshow(instances)
+        instances, colors = getInstancesImageFromContours(objectContours)
+        ax4.imshow(img)
+        ax4.imshow(instances, alpha=0.3)
+        for(i, contour) in enumerate(objectContours):
+            ax4.plot(contour[:, 0], contour[:, 1],
+                     color=list(map(lambda x: x/255, colors[i])), linewidth=2, linestyle='dashed')
+
+        ax5.set_title("Overlap Probabilities")
+        ax5.imshow(overlapProba, cmap="gray")
 
         fig.tight_layout()
         plt.show()

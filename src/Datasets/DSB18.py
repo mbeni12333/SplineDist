@@ -38,14 +38,19 @@ def get_transforms(mean, std):
 ############## Helper Functions ##############
 
 
+def fillHoles(mask): return cv2.morphologyEx(
+    mask, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+
+
 def computeDistTransform(img):
     """
     Compute the distance transform of a binary image
     :param img: binary image
     :return: distance transform
     """
-    assert img.ptp() != 0 and img.max() > 1
-    dist = cv2.distanceTransform(img.astype(np.uint8), cv2.DIST_L2, 5)
+    # assert img.ptp() != 0
+    # assert img.max() > 1
+    dist = cv2.distanceTransform((img*255).astype(np.uint8), cv2.DIST_L2, 5)
     # normalize the distance transform
     dist = cv2.normalize(dist, None, 0, 1, cv2.NORM_MINMAX)
 
@@ -58,7 +63,9 @@ def computeContours(img):
     :param img: binary image
     :return: contours
     """
-    contours, _ = cv2.findContours((img*255).astype(np.uint8),
+    img = (img.copy()*255).astype(np.uint8)
+
+    contours, _ = cv2.findContours(img,
                                    mode=cv2.RETR_LIST,
                                    method=cv2.CHAIN_APPROX_NONE)
     return contours
@@ -98,8 +105,7 @@ class Nuclie_data(Dataset):
 
         (objectProbas, overlapProba, objectContours, mask) = self.get_mask(
             mask_folder, 256, 256)
-        mask = mask.astype(np.uint8)
-        mask = mask.astype(np.uint8)
+
         augmented = self.transforms(image=img, mask=mask)
         img = augmented['image']
         mask = augmented['mask']
@@ -130,16 +136,19 @@ class Nuclie_data(Dataset):
         :param IMG_WIDTH: width of the image
         :return: mask
         """
-        masks = np.stack([transform.resize(io.imread(os.path.join(mask_folder, mask_)).astype(np.uint8), (IMG_HEIGHT, IMG_WIDTH), 0)
+
+        masks = np.stack([transform.resize(fillHoles(io.imread(os.path.join(mask_folder, mask_))), (IMG_HEIGHT, IMG_WIDTH), 0)
                           for mask_ in os.listdir(mask_folder)], axis=0
                          ).astype(np.float32)  # read all masks
+
+        mask = (np.max(masks, axis=0)*255).astype(np.uint8)
 
         overlapProba = np.sum(masks, axis=0) > 1.0
 
         objectProbas = np.max(np.stack(tuple(computeDistTransform(
             masks[i]) for i in range(masks.shape[0])), axis=0), axis=0
         )
-        mask = np.max(masks, axis=0)
+
         objectContours = [computeContours(masks[i])[0].reshape(-1, 2)
                           for i in range(masks.shape[0])]
 
@@ -185,7 +194,7 @@ class Nuclie_datamodule(pl.LightningDataModule):
                           pin_memory=True,
                           shuffle=True,
                           collate_fn=collate_fn,
-                          num_workers=8)
+                          num_workers=1)
 
     # def val_dataloader(self):
     #     val_dataset = Nuclie_data(

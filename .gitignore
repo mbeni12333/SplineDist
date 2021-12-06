@@ -5,6 +5,19 @@ __pycache__/
 src/Datasets/DSB18/*
 src/pl_logs/*
 pl_logs/*
+src/Datasets/Synthethic/*
+*.aux
+*.log
+*.out
+*.pdf
+*.dvi
+*.ps
+*.bbl
+*.blg
+*.brf
+*.fls
+*.fdb_latexmk
+
 # C extensions
 *.so
 
