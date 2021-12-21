@@ -1,9 +1,0 @@
-	apt-get update
-	apt-get -y install python3.8
-	apt-get -y install python3-pip
-	apt-get -y install python-is-python3
-	apt-get -y install git unzip wget nano
-
-	pip install --upgrade pip
-	pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
-	pip install numpy matplotlib pandas scipy scikit-learn

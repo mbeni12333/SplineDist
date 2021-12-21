@@ -12,7 +12,7 @@ from torch import nn
 from albumentations import (
     HorizontalFlip, ShiftScaleRotate, Normalize, Resize, Compose, GaussNoise)
 from albumentations.pytorch import ToTensorV2
-
+from scipy.interpolate import interp1d
 import cv2
 from PIL import Image
 from torch import nn
@@ -57,7 +57,7 @@ def computeDistTransform(img):
     return dist
 
 
-def computeContours(img):
+def computeContours(img, maxSize=700):
     """
     Compute the contours of a binary image using the Satoshii algorithm.
     :param img: binary image
@@ -68,7 +68,23 @@ def computeContours(img):
     contours, _ = cv2.findContours(img,
                                    mode=cv2.RETR_LIST,
                                    method=cv2.CHAIN_APPROX_NONE)
-    return contours
+
+    
+    # interpolate contours to have a max size of maxSize
+
+    contours = contours[-1].reshape(-1, 2)
+
+    contourSize = contours.shape[0]
+
+    interpolator_x = interp1d(np.linspace(0, 1, contourSize),
+                                contours[:, 0], kind='nearest')
+    interpolator_y = interp1d(np.linspace(0, 1, contourSize),
+                                contours[:, 1], kind='nearest')
+
+    x = np.linspace(0, 1, num=maxSize)
+
+    return np.array([interpolator_x(x),
+                     interpolator_y(x)]).T
 
 ##############################################
 
@@ -116,14 +132,14 @@ class Nuclie_data(Dataset):
             mask = transforms.functional.hflip(mask)
             overlapProba = overlapProba[:, ::-1]
             objectProbas = objectProbas[:, ::-1]
-            objectContours = list(
+            objectContours = np.array(list(
                 map(lambda contour: np.hstack(
-                    (256 - contour[:, 0].reshape(-1, 1), contour[:, 1].reshape(-1, 1))), objectContours))
+                    (256 - contour[:, 0].reshape(-1, 1), contour[:, 1].reshape(-1, 1))), objectContours)))
 
         target = {}
-        target["objectProbas"] = objectProbas
-        target["overlapProba"] = overlapProba
-        target["objectContours"] = objectContours
+        target["objectProbas"] = torch.from_numpy(objectProbas.copy()).float()
+        target["overlapProba"] = torch.from_numpy(overlapProba.copy()).float()
+        target["objectContours"] = torch.from_numpy(objectContours.copy()).float()
         target["mask"] = mask
 
         return img, target
@@ -148,9 +164,7 @@ class Nuclie_data(Dataset):
         objectProbas = np.max(np.stack(tuple(computeDistTransform(
             masks[i]) for i in range(masks.shape[0])), axis=0), axis=0
         )
-
-        objectContours = [computeContours(masks[i])[0].reshape(-1, 2)
-                          for i in range(masks.shape[0])]
+        objectContours = np.array([computeContours(masks[i]) for i in range(masks.shape[0])])
 
         return (objectProbas, overlapProba, objectContours, mask)
 
@@ -161,45 +175,66 @@ def collate_fn(batch):
     :param batch: batch of items
     :return: batch of items
     """
-    images, targets, = [], []
+    images = []
+    objectProbas, overlapProba, objectContours= [], [], []
+    
     for (img, target) in batch:
         images.append(img)
-        targets.append(target)
+        # targets.append(target)
+        objectProbas.append(target["objectProbas"])
+        overlapProba.append(target["overlapProba"])
+        objectContours.append(target["objectContours"])
+        # masks.append(target["mask"])
+
 
     images = torch.stack(images, dim=0)
+    objectProbas = torch.stack(objectProbas, dim=0).unsqueeze(1)
+    # overlapProba = torch.stack(overlapProba, dim=0)
+    # objectContours = torch.vstack(objectContours)
+    # masks = torch.stack(masks, dim=0)
 
-    return images, targets
 
+    return images, (objectProbas, overlapProba, objectContours)
+    # return images,targets
 
 class Nuclie_datamodule(pl.LightningDataModule):
     """
     Datamonodule for Nuclei dataset
     """
 
-    def __init__(self):
+    def __init__(self, train_len=0.8, val_len=0.2):
         super().__init__()
+        dataset = Nuclie_data(path=os.path.join(os.path.dirname(__file__),
+                                "DSB18/train"))
 
-    # def setup(self, stage=None):
-    #     self.train_dataset = Nuclie_data(
-    #         path=os.path.join(os.path.dirname(__file__), "DSB18/train"))
-    #     self.val_dataset = Nuclie_data(
-    #         path=os.path.join(os.path.dirname(__file__), "DSB18/test"))
+        self.trainDataset, self.valDataset = random_split(dataset,[int(train_len*len(dataset)), int(val_len*len(dataset))])
+
 
     def train_dataloader(self):
-        train_dataset = Nuclie_data(
-            path=os.path.join(os.path.dirname(__file__), "DSB18/train"))
-        return DataLoader(train_dataset,
+        """
+        Get the train dataloader
+        :return: train dataloader
+        """
+        return DataLoader(self.trainDataset,
                           batch_size=8,
                           prefetch_factor=4,
                           pin_memory=True,
                           shuffle=True,
                           collate_fn=collate_fn,
-                          num_workers=1)
+                          num_workers=8)
 
-    # def val_dataloader(self):
-    #     val_dataset = Nuclie_data(
-    #         path=os.path.join(os.path.dirname(__file__), "DSB18/test"))
-    #     return DataLoader(val_dataset, batch_size=32, shuffle=False)
+    def val_dataloader(self):
+        """
+        Get the validation dataloader
+        :return: validation dataloader
+        """
+        return DataLoader(self.valDataset,
+                          batch_size=4,
+                          prefetch_factor=4,
+                          shuffle=True,
+                          pin_memory=True,
+                          collate_fn=collate_fn,
+                          num_workers=8)
 
     # def test_dataloader(self):
     #     return DataLoader(self.test_dataset, batch_size=4, shuffle=False)
