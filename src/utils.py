@@ -1,16 +1,12 @@
 import torch
-from scipy.interpolate import splev
+# from scipy.interpolate import splev
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import transforms
 import cv2
 import colorsys
-from skimage import exposure
+# from skimage import exposure
 from matplotlib.patches import Polygon
-
-
-
-
 
 
 def denormalize(x):
@@ -138,26 +134,30 @@ def showBatch(batch):
     :return:
     """
     batch_x, batch_y = batch
-
+    
+    
     for item in range(len(batch_x)):
 
         img = batch_x[item]
         img = denormalize(img).permute(1, 2, 0).clamp(0, 1).numpy()
+        print(img.ptp())
+        (objectProbas, overlapProba, objectContours) = batch_y
+        
+        objectProbas = objectProbas[item].permute(1, 2, 0)
+        overlapProba = overlapProba[item]
+        objectContours = objectContours[item]
 
-        (objectProbas, overlapProba, objectContours, mask) = batch_y[item].values()
-
-        mask = mask.numpy().copy()
-
-        fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(
-            1, 5, figsize=(25, 5))
+        fig, (ax1, ax3, ax4, ax5) = plt.subplots(
+            1, 4, figsize=(25, 8))
 
         # plt.subplot(1,4,1)
         ax1.set_title("Original Image")
         ax1.imshow(img)
 
-        ax2.set_title("Image With Adaptive histogram Equalization")
-        eq = exposure.equalize_adapthist(img, clip_limit=0.03)
-        ax2.imshow(np.clip(eq, 0, 1))
+#         ax2.set_title("Image With Adaptive histogram Equalization")
+# #         eq = exposure.equalize_adapthist(img, clip_limit=0.03)
+# #         ax2.imshow(np.clip(eq, 0, 1))
+#         ax2.imshow(img)
         # plt.subplot(1,4,2)
         ax3.set_title("Object Probabilities")
         # print(objectProbas.min(), objectProbas.max(), objectProbas.ptp())

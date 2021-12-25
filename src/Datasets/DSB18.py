@@ -1,24 +1,25 @@
 import os
+from Models.splinedist import MAX_CONTOUR_SIZE
 import torch
-import pandas as pd
-from skimage import io, transform
 import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
+import sys
+
 from torch.utils.data import Dataset, DataLoader, random_split
-from torchvision import transforms, utils
-from torch import nn
-# from torchvision.transforms import (RandomHorizontalFlip, Normalize, Resize, Compose)
-from albumentations import (
-    HorizontalFlip, ShiftScaleRotate, Normalize, Resize, Compose, GaussNoise)
-from albumentations.pytorch import ToTensorV2
-from scipy.interpolate import interp1d
+
+from torchvision import transforms, utils, io
+from torchvision.transforms import (RandomHorizontalFlip, Normalize, Resize, Compose, ToTensor)
+
 import cv2
-from PIL import Image
 from torch import nn
 import pytorch_lightning as pl
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+from numpy import interp
+
+
+MAX_CONTOUR_SIZE = 500
+
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
 
 def get_transforms(mean, std):
@@ -29,8 +30,8 @@ def get_transforms(mean, std):
     :return: transformations
     """
     list_transforms = [
-        Normalize(mean=mean, std=std),
-        ToTensorV2()
+        Resize((256, 256)),
+        Normalize(mean=mean, std=std),        
     ]
 
     return Compose(list_transforms)
@@ -38,8 +39,23 @@ def get_transforms(mean, std):
 ############## Helper Functions ##############
 
 
-def fillHoles(mask): return cv2.morphologyEx(
-    mask, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+def fillHoles(img):
+    return cv2.morphologyEx(
+        img, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)
+    )
+
+#     th, im_th = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV);
+#     im_floodfill = im_th.copy()
+    
+#     h, w = img.shape[:2]
+#     mask = np.zeros((h+2, w+2), np.uint8)
+#     # Floodfill from point (0, 0)
+#     cv2.floodFill(img, mask, (0,0), 255);
+#     # Invert floodfilled image
+#     im_floodfill_inv = cv2.bitwise_not(im_floodfill)
+
+
+#     return im_floodfill_inv
 
 
 def computeDistTransform(img):
@@ -50,7 +66,8 @@ def computeDistTransform(img):
     """
     # assert img.ptp() != 0
     # assert img.max() > 1
-    dist = cv2.distanceTransform((img*255).astype(np.uint8), cv2.DIST_L2, 5)
+
+    dist = cv2.distanceTransform(img, cv2.DIST_L2, 5)
     # normalize the distance transform
     dist = cv2.normalize(dist, None, 0, 1, cv2.NORM_MINMAX)
 
@@ -63,7 +80,7 @@ def computeContours(img, maxSize=700):
     :param img: binary image
     :return: contours
     """
-    img = (img.copy()*255).astype(np.uint8)
+    img = img.copy()
 
     contours, _ = cv2.findContours(img,
                                    mode=cv2.RETR_LIST,
@@ -73,18 +90,12 @@ def computeContours(img, maxSize=700):
     # interpolate contours to have a max size of maxSize
 
     contours = contours[-1].reshape(-1, 2)
-
     contourSize = contours.shape[0]
-
-    interpolator_x = interp1d(np.linspace(0, 1, contourSize),
-                                contours[:, 0], kind='nearest')
-    interpolator_y = interp1d(np.linspace(0, 1, contourSize),
-                                contours[:, 1], kind='nearest')
-
-    x = np.linspace(0, 1, num=maxSize)
-
-    return np.array([interpolator_x(x),
-                     interpolator_y(x)]).T
+    interpolator_x = interp(np.linspace(0, 1, maxSize),
+                              np.linspace(0, 1, contourSize), contours[:, 0])
+    interpolator_y = interp(np.linspace(0, 1, maxSize),
+                              np.linspace(0, 1, contourSize), contours[:, 1])
+    return np.array([interpolator_x, interpolator_y]).T
 
 ##############################################
 
@@ -116,20 +127,20 @@ class Nuclie_data(Dataset):
         mask_folder = os.path.join(self.path, self.folders[idx], 'masks/')
         image_path = os.path.join(image_folder, os.listdir(image_folder)[0])
 
-        img = io.imread(image_path)[:, :, :3].astype('float32')
-        img = transform.resize(img, (256, 256))
-
+        #img = io.read_image(image_path, io.ImageReadMode.RGB).float()/255
+        img = cv2.imread(image_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)/255
+        img = torch.from_numpy(img).permute(2, 0, 1).float()
+        
         (objectProbas, overlapProba, objectContours, mask) = self.get_mask(
             mask_folder, 256, 256)
 
-        augmented = self.transforms(image=img, mask=mask)
-        img = augmented['image']
-        mask = augmented['mask']
+        img = self.transforms(img)
 
         # draw a random number between 0 and 1
         if np.random.random() > 0.5:
             img = transforms.functional.hflip(img)
-            mask = transforms.functional.hflip(mask)
+            mask = mask[:, ::-1]
             overlapProba = overlapProba[:, ::-1]
             objectProbas = objectProbas[:, ::-1]
             objectContours = np.array(list(
@@ -153,18 +164,24 @@ class Nuclie_data(Dataset):
         :return: mask
         """
 
-        masks = np.stack([transform.resize(fillHoles(io.imread(os.path.join(mask_folder, mask_))), (IMG_HEIGHT, IMG_WIDTH), 0)
-                          for mask_ in os.listdir(mask_folder)], axis=0
-                         ).astype(np.float32)  # read all masks
-
-        mask = (np.max(masks, axis=0)*255).astype(np.uint8)
-
-        overlapProba = np.sum(masks, axis=0) > 1.0
-
-        objectProbas = np.max(np.stack(tuple(computeDistTransform(
-            masks[i]) for i in range(masks.shape[0])), axis=0), axis=0
+        masks = np.stack([
+            cv2.resize(
+                fillHoles(
+                    io.read_image(os.path.join(mask_folder, mask_),
+                    io.ImageReadMode.GRAY).numpy().transpose(1, 2, 0)
+                ),
+                (IMG_HEIGHT, IMG_WIDTH)
+            )
+            for mask_ in os.listdir(mask_folder)], axis=0
         )
-        objectContours = np.array([computeContours(masks[i]) for i in range(masks.shape[0])])
+
+        mask = np.max(masks, axis=0)
+
+        overlapProba = np.sum(masks//255, axis=0) > 1.0
+
+        objectProbas = np.stack(tuple(computeDistTransform(masks[i])
+                                      for i in range(masks.shape[0])), axis=0).max(0)
+        objectContours = np.array([computeContours(masks[i], MAX_CONTOUR_SIZE) for i in range(masks.shape[0])])
 
         return (objectProbas, overlapProba, objectContours, mask)
 
@@ -189,13 +206,10 @@ def collate_fn(batch):
 
     images = torch.stack(images, dim=0)
     objectProbas = torch.stack(objectProbas, dim=0).unsqueeze(1)
-    # overlapProba = torch.stack(overlapProba, dim=0)
-    # objectContours = torch.vstack(objectContours)
-    # masks = torch.stack(masks, dim=0)
-
+    overlapProba = torch.stack(overlapProba, dim=0).unsqueeze(1)
 
     return images, (objectProbas, overlapProba, objectContours)
-    # return images,targets
+
 
 class Nuclie_datamodule(pl.LightningDataModule):
     """
@@ -216,8 +230,8 @@ class Nuclie_datamodule(pl.LightningDataModule):
         :return: train dataloader
         """
         return DataLoader(self.trainDataset,
-                          batch_size=8,
-                          prefetch_factor=4,
+                          batch_size=4,
+                          prefetch_factor=2,
                           pin_memory=True,
                           shuffle=True,
                           collate_fn=collate_fn,
@@ -230,8 +244,8 @@ class Nuclie_datamodule(pl.LightningDataModule):
         """
         return DataLoader(self.valDataset,
                           batch_size=4,
-                          prefetch_factor=4,
-                          shuffle=True,
+                          prefetch_factor=2,
+                          shuffle=False,
                           pin_memory=True,
                           collate_fn=collate_fn,
                           num_workers=8)
