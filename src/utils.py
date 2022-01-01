@@ -145,7 +145,8 @@ def showBatch(batch):
         
         objectProbas = objectProbas[item].permute(1, 2, 0)
         overlapProba = overlapProba[item].permute(1, 2, 0)
-        objectContours = objectContours[item]
+        objectContours = objectContours[item].reshape(256*256, -1, 2)
+        objectContours = torch.uinque(objectContours, dim=0)
 
         fig, (ax1, ax3, ax4, ax5) = plt.subplots(
             1, 4, figsize=(25, 8))

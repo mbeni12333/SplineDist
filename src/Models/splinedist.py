@@ -111,73 +111,93 @@ def polygon_iou(poly1, poly2, useCV2=True):
         return 0
 
 
+
 def computeContourLoss(objectProbas, contours, targetObjectProbas, targetContours, nms_threshold=0.7, obj_threshold=0.7, lambda2=1.0, shifts=None):
     """
     """
 
-    xmin = torch.amin(contours[:, :, :, 1], dim=-1) 
-    xmax = torch.amax(contours[:, :, :, 1], dim=-1)
-    ymin = torch.amin(contours[:, :, :, 0], dim=-1)
-    ymax = torch.amax(contours[:, :, :, 0], dim=-1)
+    mask = (targetObjectProbas > 0)
 
-    bboxes = torch.stack([xmin, ymin, xmax, ymax], -1)
-    
-    targetObjectProbas = targetObjectProbas.to(contours.device).reshape(-1, 256*256)
-    
+    term1 = (targetObjectProbas * mask * torch.abs(contours - targetContours)).mean()
+    term2 = (1-mask) * torch.abs(contours)
 
-
-    loss = torch.FloatTensor([[0]]).to(contours.device)
-    for i in range(targetObjectProbas.shape[0]):
-        term1 = 0
-        term2 = 0
-        term1Bis = 0
-        # get the ground truth scores
-        scores = targetObjectProbas[i]
-
-        # select contours with a ground truth score above 0 
-        contoursWithNotNullProba = contours[i][scores > 0]
-        # then match it to the predicted contours suing intersection over union
-
-        xmin, _ = targetContours[i][:, :, 1].min(-1) 
-        xmax, _ = targetContours[i][:, :, 1].max(-1) 
-        ymin, _ = targetContours[i][:, :, 0].min(-1) 
-        ymax, _ = targetContours[i][:, :, 0].max(-1)
-
-        targetBboxes = torch.stack([xmin, ymin, xmax, ymax], -1).to(contours.device)
-
-        cost = box_iou(bboxes[i][scores>0], targetBboxes)
-
-        values, selectedIds = cost.max(1)
-
-        selectedContoursHavingIouNotNull = contours[i][scores>0][values != 0]
-        associatedTargetContours = targetContours[i][selectedIds][values!= 0].to(contours.device)
-        notSelectedContours = (contours[i] - shifts.permute(1, 2, 0).reshape(-1, 1, 2))[scores==0]
-        
-
-        w1 = scores[scores>0][values != 0].reshape(-1, 1, 1)
-        
-
-        # cost = cdist(selectedContoursHavingIouNotNull, associatedTargetContours).flatten(1).detach().cpu().numpy()
-        # m = cost.argmin(1)
-        # i, j = m//291, m%291
-        # roll = tuple((j-i+1))
-        # dist = 0
-        # for k in range(selectedContoursHavingIouNotNull.shape[0]):
-        #     dist += torch.abs(torch.roll(selectedContoursHavingIouNotNull[k], roll[k], 0) - associatedTargetContours[k]).mean()*w1[k]
-        # term1 = dist
-        
-
-        term2 = (lambda2*torch.abs(notSelectedContours)).mean()
-        
-        if len(selectedContoursHavingIouNotNull) != 0:
-            term1 = (torch.abs(selectedContoursHavingIouNotNull - associatedTargetContours).mean((1, 2))*w1).mean()
-            # term1 = term1/selectedContoursHavingIouNotNull.shape[0]
-            loss += term1
-
-        loss += term2
+    loss = term1/mask.mean() + term2
 
 
     return loss
+
+
+
+
+
+
+# def computeContourLoss(objectProbas, contours, targetObjectProbas, targetContours, nms_threshold=0.7, obj_threshold=0.7, lambda2=1.0, shifts=None):
+#     """
+#     """
+
+#     xmin = torch.amin(contours[:, :, :, 1], dim=-1) 
+#     xmax = torch.amax(contours[:, :, :, 1], dim=-1)
+#     ymin = torch.amin(contours[:, :, :, 0], dim=-1)
+#     ymax = torch.amax(contours[:, :, :, 0], dim=-1)
+
+#     bboxes = torch.stack([xmin, ymin, xmax, ymax], -1)
+    
+#     targetObjectProbas = targetObjectProbas.to(contours.device).reshape(-1, 256*256)
+    
+
+
+#     loss = torch.FloatTensor([[0]]).to(contours.device)
+#     for i in range(targetObjectProbas.shape[0]):
+#         term1 = 0
+#         term2 = 0
+#         term1Bis = 0
+#         # get the ground truth scores
+#         scores = targetObjectProbas[i]
+
+#         # select contours with a ground truth score above 0 
+#         contoursWithNotNullProba = contours[i][scores > 0]
+#         # then match it to the predicted contours suing intersection over union
+
+#         xmin, _ = targetContours[i][:, :, 1].min(-1) 
+#         xmax, _ = targetContours[i][:, :, 1].max(-1) 
+#         ymin, _ = targetContours[i][:, :, 0].min(-1) 
+#         ymax, _ = targetContours[i][:, :, 0].max(-1)
+
+#         targetBboxes = torch.stack([xmin, ymin, xmax, ymax], -1).to(contours.device)
+
+#         cost = box_iou(bboxes[i][scores>0], targetBboxes)
+
+#         values, selectedIds = cost.max(1)
+
+#         selectedContoursHavingIouNotNull = contours[i][scores>0][values != 0]
+#         associatedTargetContours = targetContours[i][selectedIds][values!= 0].to(contours.device)
+#         notSelectedContours = (contours[i] - shifts.permute(1, 2, 0).reshape(-1, 1, 2))[scores==0]
+        
+
+#         w1 = scores[scores>0][values != 0].reshape(-1, 1, 1)
+        
+
+#         # cost = cdist(selectedContoursHavingIouNotNull, associatedTargetContours).flatten(1).detach().cpu().numpy()
+#         # m = cost.argmin(1)
+#         # i, j = m//291, m%291
+#         # roll = tuple((j-i+1))
+#         # dist = 0
+#         # for k in range(selectedContoursHavingIouNotNull.shape[0]):
+#         #     dist += torch.abs(torch.roll(selectedContoursHavingIouNotNull[k], roll[k], 0) - associatedTargetContours[k]).mean()*w1[k]
+#         # term1 = dist
+        
+
+#         term2 = (lambda2*torch.abs(notSelectedContours)).mean()
+        
+#         if len(selectedContoursHavingIouNotNull) != 0:
+#             term1 = (torch.abs(selectedContoursHavingIouNotNull - associatedTargetContours).mean((1, 2))*w1).mean()
+#             # term1 = term1/selectedContoursHavingIouNotNull.shape[0]
+#             loss += term1
+
+#         loss += term2
+
+
+#     return loss
     
 def nonMaximumSuppresion(objectProbas, contours, score_threshold=0.8, iou_threshold=0.7):
     """

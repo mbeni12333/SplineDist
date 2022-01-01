@@ -186,15 +186,21 @@ class Nuclie_data(Dataset):
         overlapProba = np.sum(masks//255, axis=0) > 1.0
         
         objectProbas = []
-        objectContours = []
+        # objectContours = []
+
+        objectContours = np.zeros((IMG_HEIGHT, IMG_WIDTH, MAX_CONTOUR_SIZE, 2), dtype=np.uint8)
+
         for i in range(masks.shape[0]):
             objectProbas.append(computeDistTransform(masks[i]))
             contour = computeContours(masks[i], MAX_CONTOUR_SIZE)
+            idx_nonzero  = np.argwhere(masks[i])
+
             if contour != []:
-                objectContours.append(contour)
+                # objectContours.append(contour)
+                objectContours[idx_nonzero[:, 0], idx_nonzero[:, 1]] = contour
             
         objectProbas = np.stack(objectProbas, axis=0).max(0)
-        objectContours = np.array(objectContours)
+        # objectContours = np.array(objectContours)
 
         return (objectProbas, overlapProba, objectContours, mask)
 
@@ -218,6 +224,7 @@ def collate_fn(batch):
 
 
     images = torch.stack(images, dim=0)
+    objectContours = torch.stack(objectContours, dim=0)
     objectProbas = torch.stack(objectProbas, dim=0).unsqueeze(1)
     overlapProba = torch.stack(overlapProba, dim=0).unsqueeze(1)
 
