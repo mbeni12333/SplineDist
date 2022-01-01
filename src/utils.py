@@ -71,38 +71,38 @@ def B(x, k, i, t):
          c2 = (t[i+k+1] - x)/(t[i+k+1] - t[i+1]) * B(x, k-1, i+1, t)
       return c1 + c2
 
-# def sampleBsplineFromControlPoints(controlPoints, numSamples, degree=3):
-#     """
-#     Sample a bspline from the control points
-#     :param controlPoints: the control points
-#     :param numSamples: the number of samples
-#     :param degree: the degree of the bspline
-#     :return: the sampled bspline
-#     """
+def sampleBsplineFromControlPoints(controlPoints, numSamples, degree=3):
+    """
+    Sample a bspline from the control points
+    :param controlPoints: the control points
+    :param numSamples: the number of samples
+    :param degree: the degree of the bspline
+    :return: the sampled bspline
+    """
 
-#     k = degree
-#     t = np.zeros((len(controlPoints)+degree*2+1))
-#     t[:degree] = 0
-#     t[degree:-degree] = np.linspace(0, 1, len(t) - degree*2)
-#     t[-degree:] = 1
+    k = degree
+    t = np.zeros((len(controlPoints)+degree*2+1))
+    t[:degree] = 0
+    t[degree:-degree] = np.linspace(0, 1, len(t) - degree*2)
+    t[-degree:] = 1
 
-#     def bspline(x, t, c, k):
-#         """
-#         Evaluate the bspline at x
-#         :param x: the x value
-#         :param t: the knot vector
-#         :param c: the control points
-#         :param k: the degree of the bspline
-#         :return: the value of the bspline
-#         """
-#         n = len(c)
-#         assert (n >= k+1) and (len(c) >= n)
-#         b = torch.FloatTensor([B(x, k, i, t) for i in range(n)]).reshape(1, n)
-#         return b @ c
+    def bspline(x, t, c, k):
+        """
+        Evaluate the bspline at x
+        :param x: the x value
+        :param t: the knot vector
+        :param c: the control points
+        :param k: the degree of the bspline
+        :return: the value of the bspline
+        """
+        n = len(c)
+        assert (n >= k+1) and (len(c) >= n)
+        b = torch.FloatTensor([B(x, k, i, t) for i in range(n)]).reshape(1, n)
+        return b @ c
 
-#     u = np.linspace(0, 1, numSamples, endpoint=True)
-#     controlPoints = torch.vstack((controlPoints, controlPoints[:3]))
-#     return torch.vstack([bspline(x, t, controlPoints, k) for x in u][degree:-degree])
+    u = np.linspace(0, 1, numSamples, endpoint=True)
+    controlPoints = torch.vstack((controlPoints, controlPoints[:3]))
+    return torch.vstack([bspline(x, t, controlPoints, k) for x in u][degree:-degree])
 
 
 
