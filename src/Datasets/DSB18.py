@@ -5,9 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
+
 from torch.utils.data import Dataset, DataLoader, random_split
 
 from torchvision import transforms, utils, io
+#from skimage import io as skio
 from torchvision.transforms import (RandomHorizontalFlip, Normalize, Resize, Compose, ToTensor)
 
 import cv2
@@ -17,9 +19,9 @@ import pytorch_lightning as pl
 from numpy import interp
 
 
-MAX_CONTOUR_SIZE = 500
+MAX_CONTOUR_SIZE = 291
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def get_transforms(mean, std):
@@ -40,9 +42,10 @@ def get_transforms(mean, std):
 
 
 def fillHoles(img):
-    return cv2.morphologyEx(
-        img, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)
-    )
+#     return cv2.morphologyEx(
+#         img, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)
+#     )
+    return  img
 
 #     th, im_th = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV);
 #     im_floodfill = im_th.copy()
@@ -80,21 +83,23 @@ def computeContours(img, maxSize=700):
     :param img: binary image
     :return: contours
     """
-    img = img.copy()
-
-    contours, _ = cv2.findContours(img,
-                                   mode=cv2.RETR_LIST,
-                                   method=cv2.CHAIN_APPROX_NONE)
-
+    if img.sum() == 0:
+        return []
     
-    # interpolate contours to have a max size of maxSize
+    contours, _ = cv2.findContours(img,
+                                   mode=cv2.RETR_EXTERNAL ,
+                                   method=cv2.CHAIN_APPROX_NONE)  
 
-    contours = contours[-1].reshape(-1, 2)
+
+    contours = contours[0].reshape(-1, 2)
+
     contourSize = contours.shape[0]
+    
     interpolator_x = interp(np.linspace(0, 1, maxSize),
                               np.linspace(0, 1, contourSize), contours[:, 0])
     interpolator_y = interp(np.linspace(0, 1, maxSize),
                               np.linspace(0, 1, contourSize), contours[:, 1])
+    
     return np.array([interpolator_x, interpolator_y]).T
 
 ##############################################
@@ -127,30 +132,33 @@ class Nuclie_data(Dataset):
         mask_folder = os.path.join(self.path, self.folders[idx], 'masks/')
         image_path = os.path.join(image_folder, os.listdir(image_folder)[0])
 
-        #img = io.read_image(image_path, io.ImageReadMode.RGB).float()/255
-        img = cv2.imread(image_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)/255
-        img = torch.from_numpy(img).permute(2, 0, 1).float()
-        
+        img = io.read_image(image_path, io.ImageReadMode.RGB).float()/255
+
+        # img = cv2.imread(image_path)
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)/255
+        # img = torch.from_numpy(img).permute(2, 0, 1).float()
+
         (objectProbas, overlapProba, objectContours, mask) = self.get_mask(
             mask_folder, 256, 256)
 
         img = self.transforms(img)
 
         # draw a random number between 0 and 1
-        if np.random.random() > 0.5:
-            img = transforms.functional.hflip(img)
-            mask = mask[:, ::-1]
-            overlapProba = overlapProba[:, ::-1]
-            objectProbas = objectProbas[:, ::-1]
-            objectContours = np.array(list(
-                map(lambda contour: np.hstack(
-                    (256 - contour[:, 0].reshape(-1, 1), contour[:, 1].reshape(-1, 1))), objectContours)))
+        # if np.random.random() > 0.5:
+        #     img = transforms.functional.hflip(img)
+        #     mask = mask[:, ::-1]
+        #     overlapProba = overlapProba[:, ::-1]
+        #     objectProbas = objectProbas[:, ::-1]
+        #     objectContours[:, :, 0] = 255 - objectContours[:, :, 0]
+            # objectContours = list(
+            #     map(lambda contour: np.hstack(
+            #         (255 - contour[:, 0].reshape(-1, 1), contour[:, 1].reshape(-1, 1))), objectContours))
 
         target = {}
         target["objectProbas"] = torch.from_numpy(objectProbas.copy()).float()
         target["overlapProba"] = torch.from_numpy(overlapProba.copy()).float()
         target["objectContours"] = torch.from_numpy(objectContours.copy()).float()
+        # target["objectContours"] = objectContours
         target["mask"] = mask
 
         return img, target
@@ -163,13 +171,11 @@ class Nuclie_data(Dataset):
         :param IMG_WIDTH: width of the image
         :return: mask
         """
+  
 
         masks = np.stack([
             cv2.resize(
-                fillHoles(
-                    io.read_image(os.path.join(mask_folder, mask_),
-                    io.ImageReadMode.GRAY).numpy().transpose(1, 2, 0)
-                ),
+                    io.read_image(os.path.join(mask_folder, mask_ ), io.ImageReadMode.GRAY).permute(1, 2, 0).numpy(),
                 (IMG_HEIGHT, IMG_WIDTH)
             )
             for mask_ in os.listdir(mask_folder)], axis=0
@@ -178,10 +184,17 @@ class Nuclie_data(Dataset):
         mask = np.max(masks, axis=0)
 
         overlapProba = np.sum(masks//255, axis=0) > 1.0
-
-        objectProbas = np.stack(tuple(computeDistTransform(masks[i])
-                                      for i in range(masks.shape[0])), axis=0).max(0)
-        objectContours = np.array([computeContours(masks[i], MAX_CONTOUR_SIZE) for i in range(masks.shape[0])])
+        
+        objectProbas = []
+        objectContours = []
+        for i in range(masks.shape[0]):
+            objectProbas.append(computeDistTransform(masks[i]))
+            contour = computeContours(masks[i], MAX_CONTOUR_SIZE)
+            if contour != []:
+                objectContours.append(contour)
+            
+        objectProbas = np.stack(objectProbas, axis=0).max(0)
+        objectContours = np.array(objectContours)
 
         return (objectProbas, overlapProba, objectContours, mask)
 
@@ -216,10 +229,9 @@ class Nuclie_datamodule(pl.LightningDataModule):
     Datamonodule for Nuclei dataset
     """
 
-    def __init__(self, train_len=0.8, val_len=0.2):
+    def __init__(self, train_len=0.8, val_len=0.2, path=""):
         super().__init__()
-        dataset = Nuclie_data(path=os.path.join(os.path.dirname(__file__),
-                                "DSB18/train"))
+        dataset = Nuclie_data(path=path)
 
         self.trainDataset, self.valDataset = random_split(dataset,[int(train_len*len(dataset)), int(val_len*len(dataset))])
 
@@ -231,7 +243,7 @@ class Nuclie_datamodule(pl.LightningDataModule):
         """
         return DataLoader(self.trainDataset,
                           batch_size=4,
-                          prefetch_factor=2,
+                          prefetch_factor=4,
                           pin_memory=True,
                           shuffle=True,
                           collate_fn=collate_fn,
@@ -244,7 +256,7 @@ class Nuclie_datamodule(pl.LightningDataModule):
         """
         return DataLoader(self.valDataset,
                           batch_size=4,
-                          prefetch_factor=2,
+                          prefetch_factor=4,
                           shuffle=False,
                           pin_memory=True,
                           collate_fn=collate_fn,

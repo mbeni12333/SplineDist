@@ -5,6 +5,10 @@ __pycache__/
 src/Datasets/DSB18/*
 src/pl_logs/*
 pl_logs/*
+src/Experiments/pl_logs
+src/Experiments/Models
+*.sif
+.vscode/
 src/Datasets/Synthethic/*
 *.aux
 *.log

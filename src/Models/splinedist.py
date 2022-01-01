@@ -9,47 +9,41 @@ from torch.utils.data import TensorDataset
 from nms import nms, helpers
 # from pytorch_lightning.metrics.functional import accuracy, mAP
 # from scipy.interpolate import BSpline, splev
-# from scipy.optimize import linear_sum_assignment
+#from scipy.optimize import linear_sum_assignment
 # from scipy.spatial.distance import cdist
+from torchvision.ops import box_iou, batched_nms
+import matplotlib.patches as patches
 from torch import cdist
 from .unet import UNet
 from utils import *
 import tqdm
+import pdb
+from torchvision.utils import make_grid
 
-
-
-###########################################################################
+############# REMOVE ################
 def linear_sum_assignment(cost_matrix):
     """Solve the linear sum assignment problem.
-
     The linear sum assignment problem is also known as minimum weight matching
     in bipartite graphs. A problem instance is described by a matrix C, where
     each C[i,j] is the cost of matching vertex i of the first partite set
     (a "worker") and vertex j of the second set (a "job"). The goal is to find
     a complete assignment of workers to jobs of minimal cost.
-
     Formally, let X be a boolean matrix where :math:`X[i,j] = 1` iff row i is
     assigned to column j. Then the optimal assignment has cost
-
     .. math::
         \min \sum_i \sum_j C_{i,j} X_{i,j}
-
     s.t. each row is assignment to at most one column, and each column to at
     most one row.
-
     This function can also solve a generalization of the classic assignment
     problem where the cost matrix is rectangular. If it has more rows than
     columns, then not every row needs to be assigned to a column, and vice
     versa.
-
     The method used is the Hungarian algorithm, also known as the Munkres or
     Kuhn-Munkres algorithm.
-
     Parameters
     ----------
     cost_matrix : array
         The cost matrix of the bipartite graph.
-
     Returns
     -------
     row_ind, col_ind : array
@@ -58,11 +52,9 @@ def linear_sum_assignment(cost_matrix):
         as ``cost_matrix[row_ind, col_ind].sum()``. The row indices will be
         sorted; in the case of a square cost matrix they will be equal to
         ``numpy.arange(cost_matrix.shape[0])``.
-
     Notes
     -----
     .. versionadded:: 0.17.0
-
     Examples
     --------
     >>> cost = np.array([[4, 1, 3], [2, 0, 5], [3, 2, 2]])
@@ -72,23 +64,18 @@ def linear_sum_assignment(cost_matrix):
     array([1, 0, 2])
     >>> cost[row_ind, col_ind].sum()
     5
-
     References
     ----------
     1. http://csclab.murraystate.edu/bob.pilgrim/445/munkres.html
-
     2. Harold W. Kuhn. The Hungarian Method for the assignment problem.
        *Naval Research Logistics Quarterly*, 2:83-97, 1955.
-
     3. Harold W. Kuhn. Variants of the Hungarian method for assignment
        problems. *Naval Research Logistics Quarterly*, 3: 253-258, 1956.
-
     4. Munkres, J. Algorithms for the Assignment and Transportation Problems.
        *J. SIAM*, 5(1):32-38, March, 1957.
-
     5. https://en.wikipedia.org/wiki/Hungarian_algorithm
     """
-
+    cost_matrix = np.asarray(cost_matrix)
     if len(cost_matrix.shape) != 2:
         raise ValueError("expected a matrix (2-d array), got a %r array"
                          % (cost_matrix.shape,))
@@ -118,7 +105,6 @@ def linear_sum_assignment(cost_matrix):
 
 class _Hungary(object):
     """State of the Hungarian algorithm.
-
     Parameters
     ----------
     cost_matrix : 2D matrix
@@ -126,7 +112,7 @@ class _Hungary(object):
     """
 
     def __init__(self, cost_matrix):
-        self.C = cost_matrix
+        self.C = cost_matrix.copy()
 
         n, m = self.C.shape
         self.row_uncovered = np.ones(n, dtype=bool)
@@ -278,31 +264,36 @@ def _step6(state):
         state.C[~state.row_uncovered] += minval
         state.C[:, state.col_uncovered] -= minval
     return _step4
+############### Remove ##############
 
-####################################################################################################
+
+###########################################################################
+
 
 from concurrent.futures import ProcessPoolExecutor
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
 
-MAX_CONTOUR_SIZE = 500
+MAX_CONTOUR_SIZE = 291
+
+colors = [ list(map(lambda x: x/255, getRandomColor())) for i in range(256*256+1)]
 
 ################################# Helper Functions ################################################################
 
 
-def matchInstances(postProcessed, target):
+# def matchInstances(postProcessed, target):
 
-    cost = cdist(postProcessed, target, metric=nms.fast.polygon_iou)
+#     cost = cdist(postProcessed, target, metric=nms.fast.polygon_iou)
 
-    rowId, colId = linear_sum_assignment(cost)
+#     rowId, colId = linear_sum_assignment(cost)
 
 
 
-    TP = []
-    FP = []
-    FN = []
+#     TP = []
+#     FP = []
+#     FN = []
 
-    return TP, FP, FN
+#     return TP, FP, FN
 
 
 def computeDistanceBetweenInstance(contour1, contour2):
@@ -314,13 +305,18 @@ def computeDistanceBetweenInstance(contour1, contour2):
     """
     # we must match every pixel of the contour to the corresponding pixel of the other contour
     # we use the euclidean distance to compute the distance between the contour pixels
-    cost = cdist(contour1.detach(),
-                 contour2.detach())
-    # then we solve the linear affecteion problem
-    rowId, colId = linear_sum_assignment(cost.cpu().numpy())
-    # we obtain the distance between the contour pixels
+    with torch.no_grad():
+        cost = cdist(contour1,
+                     contour2)
+        # then we solve the linear affecteion problem
 
-    dist = torch.abs(contour1[rowId] - contour2[colId]).sum()
+#         rowId, colId = linear_sum_assignment(cost.cpu().numpy())
+    # we obtain the distance between the contour pixels
+    m = cost.argmin().item()
+    i, j = m//291, m%291
+    dist = torch.abs(torch.roll(contour1, (j-i+1), 0) - contour2).mean()
+#     dist = torch.abs(contour1[rowId] - contour2[colId]).sum()
+
     return dist
     # return cost[rowId, colId].sum()
 
@@ -370,57 +366,159 @@ def polygon_iou(poly1, poly2, useCV2=True):
         return 0
 
 
-def computeContourLoss(objectProbas, contours, targetObjectProbas, targetContours, nms_threshold=0.7, obj_threshold=0.7):
+def computeContourLoss(objectProbas, contours, targetObjectProbas, targetContours, nms_threshold=0.7, obj_threshold=0.7, lambda2=1.0, shifts=None):
     """
     """
+
+    xmin = torch.amin(contours[:, :, :, 1], dim=-1) 
+    xmax = torch.amax(contours[:, :, :, 1], dim=-1)
+    ymin = torch.amin(contours[:, :, :, 0], dim=-1)
+    ymax = torch.amax(contours[:, :, :, 0], dim=-1)
+
+    bboxes = torch.stack([xmin, ymin, xmax, ymax], -1)
     
-    scores = objectProbas.flatten(1).cpu().detach().numpy()
-    sortedInstances = np.argsort(scores, axis=1).copy()
+    targetObjectProbas = targetObjectProbas.to(contours.device).reshape(-1, 256*256)
     
-    til = []
-    for i in range(sortedInstances.shape[0]):
-        til.append(np.searchsorted(scores[i, sortedInstances[i]], obj_threshold))
 
-    contours2 = [contours[i, til[i]:].detach().cpu().numpy() for i in range(len(til))]
 
-    loss = 0
-
+    loss = torch.FloatTensor([[0]]).to(contours.device)
     for i in range(targetObjectProbas.shape[0]):
         term1 = 0
         term2 = 0
+        term1Bis = 0
+        # get the ground truth scores
+        scores = targetObjectProbas[i]
 
-        postProcessed = nonMaximumSuppresion(scores[i, sortedInstances[i, til[i]:]],
-                                            contours2[i],
-                                            obj_threshold,
-                                            nms_threshold)
+        # select contours with a ground truth score above 0 
+        contoursWithNotNullProba = contours[i][scores > 0]
+        # then match it to the predicted contours suing intersection over union
 
-        contoursSelected, idsSelected = postProcessed
-        idsSelected = np.array(idsSelected)
+        xmin, _ = targetContours[i][:, :, 1].min(-1) 
+        xmax, _ = targetContours[i][:, :, 1].max(-1) 
+        ymin, _ = targetContours[i][:, :, 0].min(-1) 
+        ymax, _ = targetContours[i][:, :, 0].max(-1)
 
-        cost = np.zeros((len(contoursSelected), len(targetContours[i])))
-        for j in range(len(idsSelected)):
-            for k in range(len(targetContours[i])):
-                cost[j, k] = polygon_iou(contoursSelected[j].reshape(MAX_CONTOUR_SIZE*2),
-                                         targetContours[i][k].reshape(MAX_CONTOUR_SIZE*2).cpu().numpy())
+        targetBboxes = torch.stack([xmin, ymin, xmax, ymax], -1).to(contours.device)
 
-        rowId, colId = linear_sum_assignment(-cost)
+        cost = box_iou(bboxes[i][scores>0], targetBboxes)
 
-        rowId2 = rowId[cost[rowId, colId] > 0]
-        colId2 = colId[cost[rowId, colId] > 0]
+        values, selectedIds = cost.max(1)
 
-        idsSelected2 = idsSelected[rowId2]
-        TP = [contours[i, idsSelected2], idsSelected2, colId2]
+        selectedContoursHavingIouNotNull = contours[i][scores>0][values != 0]
+        associatedTargetContours = targetContours[i][selectedIds][values!= 0].to(contours.device)
+        notSelectedContours = (contours[i] - shifts.permute(1, 2, 0).reshape(-1, 1, 2))[scores==0]
+        
 
-        if len(idsSelected2) > 0:
-            term1 = torch.stack(tuple(computeDistanceBetweenInstance(TP[0][j],
-                                      targetContours[i][TP[2]][j]) for j in range(len(idsSelected2)))).mean()
-            term2 = torch.abs(contours[i, ~idsSelected2]).mean()
-        else:
-            term2 = torch.abs(contours[i, :]).mean()
+        
+        w1 = scores[scores>0][values != 0].reshape(-1, 1, 1)
+        w2 = lambda2
+        
+        
+        # print(f"selected : {selectedIds.shape},\n\
+        #   Values : {values.shape},\n\
+        #   SelectedContours{selectedContoursHavingIouNotNull.shape},\n\
+        #   AssociatedContoursL: {associatedTargetContours.shape},\n\
+        #   NotSelected: {notSelectedContours.shape},\n\
+        #   w1 : {w1.shape}")
+#         if len(selectedContoursHavingIouNotNull) != 0:
+#             term1 = (w1*torch.abs(selectedContoursHavingIouNotNull - associatedTargetContours)).mean()
+        # pdb.set_trace()
+#         term1 = sum([computeDistanceBetweenInstance(selectedContoursHavingIouNotNull[k],
+#                                                     associatedTargetContours[k])*w1[k]
+#             for k in tqdm.tqdm(range(selectedContoursHavingIouNotNull.shape[0]))])
 
-        loss += term1 + term2
+        cost = cdist(selectedContoursHavingIouNotNull, associatedTargetContours).flatten(1).detach().cpu().numpy()
+        m = cost.argmin(1)
+        i, j = m//291, m%291
+        roll = tuple((j-i+1))
+        dist = 0
+        for k in range(selectedContoursHavingIouNotNull.shape[0]):
+            dist += torch.abs(torch.roll(selectedContoursHavingIouNotNull[k], roll[k], 0) - associatedTargetContours[k]).mean()*w1[k]
+        term1 = dist
 
-    return loss/targetObjectProbas.shape[0]
+#         term1Bis = (w1*torch.abs(selectedContoursHavingIouNotNull - associatedTargetContours).mean((1, 2))).mean()
+        
+#         print(i.shape, j.shape)
+#         for k in range(selectedContoursHavingIouNotNull.shape[0]):
+#             contour1 = selectedContoursHavingIouNotNull[k]
+#             contour2 = associatedTargetContours[k]
+#             m = cdist(contour1, contour2).argmin().item()
+#             i, j = m//291, m%291
+#             dist = torch.abs(torch.roll(contour1, (j-i+1), 0) - contour2).mean()
+#             distWithoutRoll = torch.abs(contour1 - contour2).mean()
+#             term1 += dist*w1[k]
+#             term1Bis += distWithoutRoll*w1[k]
+#             term1 += computeDistanceBetweenInstance(selectedContoursHavingIouNotNull[k],
+#                                                     associatedTargetContours[k])*w1[k]
+            
+#         term1 = term1/(selectedContoursHavingIouNotNull.shape[0])
+        
+#         print(f"Dist with roll : {term1}, WithoutRoll: {term1Bis}")
+        term2 = (w2*torch.abs(notSelectedContours)).mean()
+        
+        if len(selectedContoursHavingIouNotNull) != 0:
+#             term1 = (w1*torch.abs(selectedContoursHavingIouNotNull - associatedTargetContours).mean((1, 2))).mean()
+            term1 = term1/selectedContoursHavingIouNotNull.shape[0]
+#             term1Bis = term1Bis/selectedContoursHavingIouNotNull.shape[0]
+#             print(f"Dist with roll : {term1.item()}, WithoutRoll: {term1Bis.item()}, ")
+            loss += term1
+
+        loss += term2
+
+
+    return loss
+    
+# def computeContourLoss(objectProbas, contours, targetObjectProbas, targetContours, nms_threshold=0.7, obj_threshold=0.7):
+#     """
+#     """
+    
+#     scores = objectProbas.flatten(1).cpu().detach().numpy()
+#     sortedInstances = np.argsort(scores, axis=1).copy()
+    
+#     til = []
+#     for i in range(sortedInstances.shape[0]):
+#         til.append(np.searchsorted(scores[i, sortedInstances[i]], obj_threshold))
+
+#     contours2 = [contours[i, til[i]:].detach().cpu().numpy() for i in range(len(til))]
+
+#     loss = 0
+
+#     for i in range(targetObjectProbas.shape[0]):
+#         term1 = 0
+#         term2 = 0
+
+#         postProcessed = nonMaximumSuppresion(scores[i, sortedInstances[i, til[i]:]],
+#                                             contours2[i],
+#                                             obj_threshold,
+#                                             nms_threshold)
+
+#         contoursSelected, idsSelected = postProcessed
+#         idsSelected = np.array(idsSelected)
+
+#         cost = np.zeros((len(contoursSelected), len(targetContours[i])))
+#         for j in range(len(idsSelected)):
+#             for k in range(len(targetContours[i])):
+#                 cost[j, k] = polygon_iou(contoursSelected[j].reshape(MAX_CONTOUR_SIZE*2),
+#                                          targetContours[i][k].reshape(MAX_CONTOUR_SIZE*2).cpu().numpy())
+
+#         rowId, colId = linear_sum_assignment(-cost)
+
+#         rowId2 = rowId[cost[rowId, colId] > 0]
+#         colId2 = colId[cost[rowId, colId] > 0]
+
+#         idsSelected2 = idsSelected[rowId2]
+#         TP = [contours[i, idsSelected2], idsSelected2, colId2]
+
+#         if len(idsSelected2) > 0:
+#             term1 = torch.stack(tuple(computeDistanceBetweenInstance(TP[0][j],
+#                                       targetContours[i][TP[2]][j]) for j in range(len(idsSelected2)))).mean()
+#             term2 = torch.abs(contours[i, ~idsSelected2]).mean()
+#         else:
+#             term2 = torch.abs(contours[i, :]).mean()
+
+#         loss += term1 + term2
+
+#     return loss/targetObjectProbas.shape[0]
 
 
 def nonMaximumSuppresion(objectProbas, contours, score_threshold=0.8, iou_threshold=0.7):
@@ -512,15 +610,22 @@ class SplineDist(pl.LightningModule):
         self.example_input_array = torch.rand(1, 3, 256, 256)
 
         # Modules of the model
-        self.segmentationBackbone = UNet()
-        self.objectFinder = nn.Sequential(nn.Conv2d(128, num_classes, kernel_size=3, padding=1),
-                                          nn.Sigmoid())
+        self.segmentationBackbone = UNet(num_features=num_features)
+        
+        self.objectFinder = nn.Conv2d(num_features,
+                                      num_classes,
+                                      kernel_size=1,
+                                      padding=0)
 
-        self.ControlPointsAngleRegressor = nn.Conv2d(
-            num_features, num_control_points, kernel_size=3, padding=1)
+        self.ControlPointsAngleRegressor = nn.Conv2d(num_features,
+                                                     num_control_points,
+                                                     kernel_size=1,
+                                                     padding=0)
 
-        self.ControlPointsDistanceRegressor = nn.Conv2d(
-            num_features, num_control_points, kernel_size=3, padding=1)
+        self.ControlPointsDistanceRegressor = nn.Conv2d(num_features,
+                                                        num_control_points,
+                                                        kernel_size=1,
+                                                        padding=0)
 
         x = torch.arange(size)
         y = torch.arange(size)
@@ -528,11 +633,17 @@ class SplineDist(pl.LightningModule):
         self.shifts = torch.stack((xx, yy), dim=0).to(device)
         self.cos = Cos()
         self.sin = Sin()
+        
+        self.step = 0
+                
+        weights = torch.FloatTensor([0.2])
+        self.bce = nn.BCEWithLogitsLoss(weight=weights)
 
         self.B3M = getBsplineMatrix(numSamples=MAX_CONTOUR_SIZE,
                                     degree=splineBasis,
-                                    numControlPoints=8).float().to(device)
-
+                                    numControlPoints=num_control_points+3).float().to(device)
+    
+    
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group("splinedist")
@@ -550,13 +661,20 @@ class SplineDist(pl.LightningModule):
         return parent_parser
 
     def forward(self, x):
+        """
+        """
+        
 
+        
         features = self.segmentationBackbone(x)
         objectProbas = self.objectFinder(features)
         angles = self.ControlPointsAngleRegressor(features)
         distances = self.ControlPointsDistanceRegressor(features)
         controlPoints = torch.stack((self.cos(angles)*distances,
                                      self.sin(angles)*distances), dim=2) + self.shifts
+        
+        controlPoints = controlPoints.permute(0, 3, 4, 1, 2)
+        controlPoints = torch.cat((controlPoints, controlPoints[:, :, :, :3, :]), 3)
 
         return objectProbas, angles, distances, controlPoints
 
@@ -572,18 +690,25 @@ class SplineDist(pl.LightningModule):
         :param predicted_targets: the predicted targets
         :param targets: the targets
         """
-        (objectProbas, controlPoints) = predicted_targets
+        (objectProbas, controlPoints, contours) = predicted_targets
         (targetObjectProbas, targetOverlapProbas, targetContours) = targets
 
 
         # targetContours = list(map(lambda x: x.to(device), targetContours))
         # targetObjectProbas = targetObjectProbas.to(device)
+#         controlPoints = controlPoints.permute(0, 3, 4, 1, 2)
 
-        contours = getContourSamples(controlPoints, self.B3M)
-        contours = contours.permute(1, 0, 2, 3, 4).reshape(objectProbas.shape[0], -1, MAX_CONTOUR_SIZE, 2)
         # loss 1
-        lossObjectProba = F.binary_cross_entropy(objectProbas, targetObjectProbas)
-        lossContour = computeContourLoss(objectProbas, contours, targetObjectProbas, targetContours)
+
+        #lossObjectProba = F.binary_cross_entropy(objectProbas, targetObjectProbas, pos_weight=weights)
+        lossObjectProba = self.bce(objectProbas, targetObjectProbas)
+#         lossObjectProba = F.mse_loss(objectProbas, targetObjectProbas)
+        lossContour = computeContourLoss(objectProbas,
+                                         contours,
+                                         targetObjectProbas,
+                                         targetContours,
+                                         lambda2=self.hparams["lambda2"],
+                                         shifts=self.shifts)
         # # loss 2
         # # non maximum suppression
         # postProcessed = nonMaximumSuppresionBatch(objectProbas,
@@ -599,34 +724,173 @@ class SplineDist(pl.LightningModule):
         # # compute the sum of the distances with predicted instances and the ground truth
         # lossDistance = 0
         # loss 3 sum of the two losses
-        finalLoss = lossObjectProba + 0.1*lossContour
+        finalLoss = lossObjectProba + self.hparams["lambda1"]*lossContour
 
         return finalLoss
 
+
+
+        
+
+    # def on_train_start(self):
+    #     """
+    #     """
+
+        
+        
     def training_step(self, batch, batch_idx):
         """
         This function is called for each batch
         :param batch: the batch
         :param batch_idx: the batch index
         """
+
         images, targets = batch
         objectProbas, angles, distances, controlPoints = self(images)
-        predicted_targets = (objectProbas, controlPoints)
+        
+        contours = getContourSamples(controlPoints, self.B3M)
+        contours = contours.permute(1, 2, 3, 0, 4).flatten(1, 2)#reshape(objectProbas.shape[0], -1, MAX_CONTOUR_SIZE, 2)
+        
+        predicted_targets = (objectProbas, controlPoints, contours)
         loss = self.compute_loss(predicted_targets, targets)
         self.log("train_loss", loss)
         return {"loss": loss}
 
 
     def validation_step(self, batch, batch_idx):
-
+        
+        tsb = self.logger.experiment
+        
         images, targets = batch
         objectProbas, angles, distances, controlPoints = self(images)
-        predicted_targets = (objectProbas, controlPoints)
+        
+        contours = getContourSamples(controlPoints, self.B3M)
+        contours = contours.permute(1, 2, 3, 0, 4).flatten(1, 2)#reshape(objectProbas.shape[0], -1, MAX_CONTOUR_SIZE, 2)
+        
+        predicted_targets = (objectProbas, controlPoints, contours)
 
         loss = self.compute_loss(predicted_targets, targets)
         self.log("val_loss", loss)
         self.log("hp_metric", loss)
 
+
+        if(batch_idx == 0):
+            ####################################################
+            
+            tsb.add_histogram("objectFinder", self.objectFinder.weight, self.step)
+            tsb.add_histogram("AnglesRegressor", self.ControlPointsAngleRegressor.weight, self.step)
+            tsb.add_histogram("DistanceRegressor", self.ControlPointsDistanceRegressor.weight, self.step)
+            
+            
+            
+            tsb.add_histogram('distance', distances, self.step)
+            tsb.add_histogram('angle', angles, self.step)
+            tsb.add_histogram('objectProbas', objectProbas, self.step)
+            ####################################################
+            fig = plt.figure(figsize=(10, 10))
+            objectProbas = torch.sigmoid(objectProbas)
+            im = objectProbas[0, 0].cpu().numpy()
+            plt.imshow(im, cmap="gnuplot2")
+            plt.colorbar()
+            tsb.add_figure("ObjectProbas", fig, self.step)      
+            
+            ###################################################
+            fig = plt.figure(figsize=(10, 10))
+            ax = fig.gca()
+            ax.imshow(np.zeros((256, 256)), cmap="gray")
+            ct = controlPoints[0].cpu().numpy()
+            for i in range(0, 256, 8):
+                for j in range(0, 256, 8):
+                    ax.fill(ct[i, j, :, 1], ct[i, j, :, 0], 'o-')
+            # plot_to_tensorboard(tsb, fig, None, f"densePredictionsConvexHull")
+            tsb.add_figure(f"densePredictionsConvexHull", fig, self.step)
+            ###################################################
+            
+            
+            for i in range(8):
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7))
+                ax1.imshow(distances[0, i].detach().cpu().numpy())
+                ax2.imshow(angles[0, i].detach().cpu().numpy())
+                # plot_to_tensorboard(tsb, fig, None, f"distance_angles{i}")
+                tsb.add_figure(f"distance_angles{i}", fig, self.step)
+            
+            ####################################################
+#             grid = make_grid(distances[0].unsqueeze(1), 4)
+#             tsb.add_image("distances", grid, self.step)
+            
+#             grid = make_grid(angles[0].unsqueeze(1), 4)
+#             tsb.add_image("angles", grid, self.step)
+             ####################################################   
+                
+#             fig = plt.figure(figsize=(10, 10))
+#             ax4 = fig.gca()
+            
+#             scores = objectProbas[0, 0][::4, ::4].reshape(-1).cpu().numpy()
+#             ctrs = contours[0].detach().cpu().numpy().reshape(256, 256, MAX_CONTOUR_SIZE, 2)[::4, ::4, :, :].reshape(-1, MAX_CONTOUR_SIZE, 2)
+
+#             ax4.imshow(denormalize(images[0]).cpu().numpy().transpose(1, 2, 0))
+#             ax4.set_title(f"number instances > threshold : {sum(scores>np.quantile(scores, 0.9))}, ctrs : {len(ctrs)}, scoresminmax{scores.min(), scores.max()}")
+#             for(i, ct) in enumerate(ctrs):
+#                 ax4.fill(ct[:, 0], ct[:,1], color=colors[i], alpha=0.3)
+#                 ax4.plot(ct[:, 0], ct[:, 1], color=colors[i], linewidth=2, linestyle='dashed')
+
+
+            threshold = self.hparams["object_threshold"]
+            contours = contours[0].reshape(-1, MAX_CONTOUR_SIZE, 2)
+
+            xmin = torch.amin(contours[:, :, 1], dim=-1) 
+            xmax = torch.amax(contours[:, :, 1], dim=-1)
+            ymin = torch.amin(contours[:, :, 0], dim=-1)
+            ymax = torch.amax(contours[:, :, 0], dim=-1)
+
+            bboxes = torch.stack([xmin, ymin, xmax, ymax], -1)
+
+            scores = objectProbas[0].reshape(256*256)
+
+            bboxes = bboxes[scores>threshold]
+            scores2 = scores[scores>threshold]
+
+            selectedIds = batched_nms(bboxes, scores2, torch.ones(len(scores2)), iou_threshold=self.hparams["nms_threshold"])
+
+            bboxes = bboxes.detach().cpu().numpy()
+            selectedIds = selectedIds.detach().cpu().numpy()
+
+            rects = bboxes[selectedIds]
+
+
+            image2 = denormalize(images[0].detach().cpu()).numpy().transpose(1, 2, 0)
+            ctrs = contours[scores>threshold][selectedIds].detach().cpu().numpy()
+            
+
+
+            fig = plt.figure(figsize=(10, 10))
+            ax4 = fig.gca()
+
+            # instances, colors = getInstancesImageFromContours(objectContours)
+#             ax4.imshow(denormalize(img[0]).cpu().numpy().transpose(1, 2, 0))
+            ax4.imshow(image2)
+            # ax4.imshow(instances, alpha=0.3)
+#             colors = [ list(map(lambda x: x/255, getRandomColor())) for j in range(len(contours))]
+
+            for j, box in enumerate(rects):
+
+                xmin, ymin, xmax, ymax = box
+                rect = patches.Rectangle((xmin, ymin),
+                                          xmax-xmin,
+                                          ymax-ymin,
+                                          linewidth=1, color=colors[j], alpha=0.3)
+
+                ax4.add_patch(rect)
+
+                ax4.fill(ctrs[j][:, 1], ctrs[j][:, 0], color=colors[j], alpha=0.3)
+                ax4.plot(ctrs[j][:, 1], ctrs[j][:, 0],color=colors[j], linewidth=2, linestyle='dashed')
+
+
+            tsb.add_figure(f"Instances", fig, self.step)
+                
+            
+            self.step += 1
+                
         return {"loss": loss}
 
 
@@ -634,6 +898,8 @@ class SplineDist(pl.LightningModule):
         """
 
         """
-        optimizer = optim.Adam(self.parameters(), lr=1e-3)
-        scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
-        return [optimizer], [scheduler]
+        optimizer = optim.Adam(self.parameters(), lr=self.hparams["learning_rate"])
+#         scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+        lr_schedulers = {"scheduler": scheduler, "monitor": "train_loss"}
+        return [optimizer], lr_schedulers
