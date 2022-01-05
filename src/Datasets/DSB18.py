@@ -143,16 +143,28 @@ class Nuclie_data(Dataset):
 
         img = self.transforms(img)
 
-        # draw a random number between 0 and 1
-        # if np.random.random() > 0.5:
-        #     img = transforms.functional.hflip(img)
-        #     mask = mask[:, ::-1]
-        #     overlapProba = overlapProba[:, ::-1]
-        #     objectProbas = objectProbas[:, ::-1]
-        #     objectContours[:, :, 0] = 255 - objectContours[:, :, 0]
-            # objectContours = list(
-            #     map(lambda contour: np.hstack(
-            #         (255 - contour[:, 0].reshape(-1, 1), contour[:, 1].reshape(-1, 1))), objectContours))
+#         # Horizontal flip
+#         if np.random.random() > 0.5:
+#             img = transforms.functional.hflip(img)
+#             mask = mask[:, ::-1]
+#             overlapProba = overlapProba[:, ::-1]
+#             objectProbas = objectProbas[:, ::-1]
+#             m = objectContours == 0
+#             objectContours[:, :, :, 0] = 255 - objectContours[:, :, :, 0]
+#             objectContours = objectContours*m
+#             # objectContours = list(
+#             #     map(lambda contour: np.hstack(
+#             #         (255 - contour[:, 0].reshape(-1, 1), contour[:, 1].reshape(-1, 1))), objectContours))
+
+#         # Vertical flip
+#         if np.random.random() > 0.5:
+#             img = transforms.functional.vflip(img)
+#             mask = mask[::-1, :]
+#             overlapProba = overlapProba[::-1, :]
+#             objectProbas = objectProbas[::-1, :]
+#             m = objectContours == 0
+#             objectContours[:, :, :, 1] = 255 - objectContours[:, :, :, 1]
+#             objectContours = objectContours*m
 
         target = {}
         target["objectProbas"] = torch.from_numpy(objectProbas.copy()).float()
@@ -197,6 +209,8 @@ class Nuclie_data(Dataset):
 
             if contour != []:
                 # objectContours.append(contour)
+                roll = contour[:, 1].argmin()
+                contour = np.roll(contour, roll, 0)
                 objectContours[idx_nonzero[:, 0], idx_nonzero[:, 1]] = contour
             
         objectProbas = np.stack(objectProbas, axis=0).max(0)

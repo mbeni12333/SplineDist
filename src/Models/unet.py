@@ -76,7 +76,7 @@ class Up(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, n_channels=3, n_classes=1, bilinear=True):
+    def __init__(self, n_channels=3, n_classes=1, bilinear=True, num_features=128):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
@@ -92,7 +92,7 @@ class UNet(nn.Module):
         self.up2 = Up(512, 256 // factor, bilinear)
         self.up3 = Up(256, 128 // factor, bilinear)
         self.up4 = Up(128, 64, bilinear)
-        self.outf = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.outf = nn.Conv2d(64, num_features, kernel_size=3, padding=1)
         # self.outc = OutConv(64, n_classes)
         self.relu = nn.ReLU(inplace=True)
 

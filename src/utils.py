@@ -55,21 +55,21 @@ def getInstancesImageFromContours(contours, shape=(256, 256), color=None):
 
 def B(x, k, i, t):
 
-      if k == 0:
-         return 1.0 if t[i] <= x < t[i+1] else 0.0
+    if k == 0:
+        return 1.0 if t[i] <= x < t[i+1] else 0.0
 
-      if t[i+k] == t[i]:
-         c1 = 0.0
+    if t[i+k] == t[i]:
+        c1 = 0.0
 
-      else:
-         c1 = (x - t[i])/(t[i+k] - t[i]) * B(x, k-1, i, t)
+    else:
+        c1 = (x - t[i])/(t[i+k] - t[i]) * B(x, k-1, i, t)
 
-      if t[i+k+1] == t[i+1]:
-         c2 = 0.0
+    if t[i+k+1] == t[i+1]:
+        c2 = 0.0
 
-      else:
-         c2 = (t[i+k+1] - x)/(t[i+k+1] - t[i+1]) * B(x, k-1, i+1, t)
-      return c1 + c2
+    else:
+        c2 = (t[i+k+1] - x)/(t[i+k+1] - t[i+1]) * B(x, k-1, i+1, t)
+    return c1 + c2
 
 def sampleBsplineFromControlPoints(controlPoints, numSamples, degree=3):
     """
@@ -146,14 +146,26 @@ def showBatch(batch):
         objectProbas = objectProbas[item].permute(1, 2, 0)
         overlapProba = overlapProba[item].permute(1, 2, 0)
         objectContours = objectContours[item].reshape(256*256, -1, 2)
-        objectContours = torch.uinque(objectContours, dim=0)
+        objectContours = torch.unique(objectContours, dim=0)
 
         fig, (ax1, ax3, ax4, ax5) = plt.subplots(
             1, 4, figsize=(25, 8))
 
+        image2 = np.uint8(img*255)
+
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    #     image2 = clahe.apply(image2)
+        img_yuv = cv2.cvtColor(image2, cv2.COLOR_RGB2YUV)
+
+        # equalize the histogram of the Y channel
+        img_yuv[:,:,0] = clahe.apply(img_yuv[:,:,0])
+
+        # convert the YUV image back to RGB format
+        image2 = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+        
         # plt.subplot(1,4,1)
         ax1.set_title("Original Image")
-        ax1.imshow(img)
+        ax1.imshow(image2)
 
 #         ax2.set_title("Image With Adaptive histogram Equalization")
 # #         eq = exposure.equalize_adapthist(img, clip_limit=0.03)
@@ -166,7 +178,7 @@ def showBatch(batch):
         # plt.subplot(1,4,4)
         ax4.set_title("Object Instances")
         # instances, colors = getInstancesImageFromContours(objectContours)
-        ax4.imshow(img)
+        ax4.imshow(image2)
 
         # ax4.imshow(instances, alpha=0.3)
         colors = [ list(map(lambda x: x/255, getRandomColor())) for i in range(len(objectContours))]
