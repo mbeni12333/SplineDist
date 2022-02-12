@@ -18,6 +18,202 @@ import pdb
 from torchvision.utils import make_grid
 
 
+################################ Remove #################################
+
+def linear_sum_assignment(cost_matrix):
+    """Solve the linear sum assignment problem.
+    """
+    cost_matrix = np.asarray(cost_matrix)
+    if len(cost_matrix.shape) != 2:
+        raise ValueError("expected a matrix (2-d array), got a %r array"
+                         % (cost_matrix.shape,))
+
+    # The algorithm expects more columns than rows in the cost matrix.
+    if cost_matrix.shape[1] < cost_matrix.shape[0]:
+        cost_matrix = cost_matrix.T
+        transposed = True
+    else:
+        transposed = False
+
+    state = _Hungary(cost_matrix)
+
+    # No need to bother with assignments if one of the dimensions
+    # of the cost matrix is zero-length.
+    step = None if 0 in cost_matrix.shape else _step1
+
+    while step is not None:
+        step = step(state)
+
+    if transposed:
+        marked = state.marked.T
+    else:
+        marked = state.marked
+    return np.where(marked == 1)
+
+
+class _Hungary(object):
+    """State of the Hungarian algorithm.
+    Parameters
+    ----------
+    cost_matrix : 2D matrix
+        The cost matrix. Must have shape[1] >= shape[0].
+    """
+
+    def __init__(self, cost_matrix):
+        self.C = cost_matrix.copy()
+
+        n, m = self.C.shape
+        self.row_uncovered = np.ones(n, dtype=bool)
+        self.col_uncovered = np.ones(m, dtype=bool)
+        self.Z0_r = 0
+        self.Z0_c = 0
+        self.path = np.zeros((n + m, 2), dtype=int)
+        self.marked = np.zeros((n, m), dtype=int)
+
+    def _clear_covers(self):
+        """Clear all covered matrix cells"""
+        self.row_uncovered[:] = True
+        self.col_uncovered[:] = True
+
+
+# Individual steps of the algorithm follow, as a state machine: they return
+# the next step to be taken (function to be called), if any.
+
+def _step1(state):
+    """Steps 1 and 2 in the Wikipedia page."""
+
+    # Step 1: For each row of the matrix, find the smallest element and
+    # subtract it from every element in its row.
+    state.C -= state.C.min(axis=1)[:, np.newaxis]
+    # Step 2: Find a zero (Z) in the resulting matrix. If there is no
+    # starred zero in its row or column, star Z. Repeat for each element
+    # in the matrix.
+    for i, j in zip(*np.where(state.C == 0)):
+        if state.col_uncovered[j] and state.row_uncovered[i]:
+            state.marked[i, j] = 1
+            state.col_uncovered[j] = False
+            state.row_uncovered[i] = False
+
+    state._clear_covers()
+    return _step3
+
+
+def _step3(state):
+    """
+    Cover each column containing a starred zero. If n columns are covered,
+    the starred zeros describe a complete set of unique assignments.
+    In this case, Go to DONE, otherwise, Go to Step 4.
+    """
+    marked = (state.marked == 1)
+    state.col_uncovered[np.any(marked, axis=0)] = False
+
+    if marked.sum() < state.C.shape[0]:
+        return _step4
+
+
+def _step4(state):
+    """
+    Find a noncovered zero and prime it. If there is no starred zero
+    in the row containing this primed zero, Go to Step 5. Otherwise,
+    cover this row and uncover the column containing the starred
+    zero. Continue in this manner until there are no uncovered zeros
+    left. Save the smallest uncovered value and Go to Step 6.
+    """
+    # We convert to int as numpy operations are faster on int
+    C = (state.C == 0).astype(int)
+    covered_C = C * state.row_uncovered[:, np.newaxis]
+    covered_C *= np.asarray(state.col_uncovered, dtype=int)
+    n = state.C.shape[0]
+    m = state.C.shape[1]
+
+    while True:
+        # Find an uncovered zero
+        row, col = np.unravel_index(np.argmax(covered_C), (n, m))
+        if covered_C[row, col] == 0:
+            return _step6
+        else:
+            state.marked[row, col] = 2
+            # Find the first starred element in the row
+            star_col = np.argmax(state.marked[row] == 1)
+            if state.marked[row, star_col] != 1:
+                # Could not find one
+                state.Z0_r = row
+                state.Z0_c = col
+                return _step5
+            else:
+                col = star_col
+                state.row_uncovered[row] = False
+                state.col_uncovered[col] = True
+                covered_C[:, col] = C[:, col] * (
+                    np.asarray(state.row_uncovered, dtype=int))
+                covered_C[row] = 0
+
+
+def _step5(state):
+    """
+    Construct a series of alternating primed and starred zeros as follows.
+    Let Z0 represent the uncovered primed zero found in Step 4.
+    Let Z1 denote the starred zero in the column of Z0 (if any).
+    Let Z2 denote the primed zero in the row of Z1 (there will always be one).
+    Continue until the series terminates at a primed zero that has no starred
+    zero in its column. Unstar each starred zero of the series, star each
+    primed zero of the series, erase all primes and uncover every line in the
+    matrix. Return to Step 3
+    """
+    count = 0
+    path = state.path
+    path[count, 0] = state.Z0_r
+    path[count, 1] = state.Z0_c
+
+    while True:
+        # Find the first starred element in the col defined by
+        # the path.
+        row = np.argmax(state.marked[:, path[count, 1]] == 1)
+        if state.marked[row, path[count, 1]] != 1:
+            # Could not find one
+            break
+        else:
+            count += 1
+            path[count, 0] = row
+            path[count, 1] = path[count - 1, 1]
+
+        # Find the first prime element in the row defined by the
+        # first path step
+        col = np.argmax(state.marked[path[count, 0]] == 2)
+        if state.marked[row, col] != 2:
+            col = -1
+        count += 1
+        path[count, 0] = path[count - 1, 0]
+        path[count, 1] = col
+
+    # Convert paths
+    for i in range(count + 1):
+        if state.marked[path[i, 0], path[i, 1]] == 1:
+            state.marked[path[i, 0], path[i, 1]] = 0
+        else:
+            state.marked[path[i, 0], path[i, 1]] = 1
+
+    state._clear_covers()
+    # Erase all prime markings
+    state.marked[state.marked == 2] = 0
+    return _step3
+
+
+def _step6(state):
+    """
+    Add the value found in Step 4 to every element of each covered row,
+    and subtract it from every element of each uncovered column.
+    Return to Step 4 without altering any stars, primes, or covered lines.
+    """
+    # the smallest uncovered value in the matrix
+    if np.any(state.row_uncovered) and np.any(state.col_uncovered):
+        minval = np.min(state.C[state.row_uncovered], axis=0)
+        minval = np.min(minval[state.col_uncovered])
+        state.C[~state.row_uncovered] += minval
+        state.C[:, state.col_uncovered] -= minval
+    return _step4
+
+
 ###########################################################################
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
@@ -56,6 +252,38 @@ def computeDistanceBetweenInstance(contour1, contour2):
 # #################### TO REMOVE ################################
 
 # #################### TO REMOVE ################################
+def createImage(width=800, height=800, depth=3):
+    """ Return a black image with an optional scale on the edge
+
+    :param width: width of the returned image
+    :type width: int
+    :param height: height of the returned image
+    :type height: int
+    :param depth: either 3 (rgb/bgr) or 1 (mono).  If 1, no scale is drawn
+    :type depth: int
+    :return: A zero'd out matrix/black image of size (width, height)
+    :rtype: :class:`numpy.ndarray`
+    """
+    # create a black image and put a scale on the edge
+
+    assert depth == 3 or depth == 1
+    assert width > 0
+    assert height > 0
+
+    hashDistance = 50
+    hashLength = 20
+
+    img = np.zeros((int(height), int(width), depth), np.uint8)
+
+    if(depth == 3):
+        for x in range(0, int(width / hashDistance)):
+            cv2.line(img, (x * hashDistance, 0), (x * hashDistance, hashLength), (0,0,255), 1)
+
+        for y in range(0, int(width / hashDistance)):
+            cv2.line(img, (0, y * hashDistance), (hashLength, y * hashDistance), (0,0,255), 1)
+
+    return img
+
 
 def polygon_iou(poly1, poly2, useCV2=True):
     """Computes the ratio of the intersection area of the input polygons to the (sum of polygon areas - intersection area)
@@ -69,10 +297,12 @@ def polygon_iou(poly1, poly2, useCV2=True):
     :return: The ratio of the intersection area / (sum of rectangle areas - intersection area)
     :rtype: float
     """
-    poly1 = poly1.reshape(MAX_CONTOUR_SIZE, 2)
-    poly2 = poly2.reshape(MAX_CONTOUR_SIZE, 2)
+    poly1 = poly1.reshape(MAX_CONTOUR_SIZE, 2).cpu().numpy()
+    poly2 = poly2.reshape(MAX_CONTOUR_SIZE, 2).cpu().numpy()
     
-    intersection_area = helpers.polygon_intersection_area([poly1, poly2])
+
+    
+    intersection_area = polygon_intersection_area([poly1, poly2])
     if intersection_area == 0:
         return 0
 
@@ -86,6 +316,52 @@ def polygon_iou(poly1, poly2, useCV2=True):
         return 0
 
 
+    
+    
+def polygon_intersection_area(polygons):
+    """ Compute the area of intersection of an array of polygons
+
+    :param polygons: a list of polygons
+    :type polygons: list
+    :return: the area of intersection of the polygons
+    :rtype: int
+    """
+    if len(polygons) == 0:
+        return 0
+
+    dx = 0
+    dy = 0
+
+    maxx = np.amax(np.array(polygons)[...,0])
+    minx = np.amin(np.array(polygons)[...,0])
+    maxy = np.amax(np.array(polygons)[...,1])
+    miny = np.amin(np.array(polygons)[...,1])
+
+    if minx < 0:
+        dx = -int(minx)
+        maxx = maxx + dx
+    if miny < 0:
+        dy = -int(miny)
+        maxy = maxy + dy
+    # (dx, dy) is used as an offset in fillPoly
+
+    for i, polypoints in enumerate(polygons):
+
+        newImage = createImage(maxx, maxy, 1)
+
+        polypoints = np.array(polypoints, np.int32)
+        polypoints = polypoints.reshape(-1, 1, 2)
+
+        cv2.fillPoly(newImage, [polypoints], (255, 255, 255), cv2.LINE_8, 0, (dx, dy))
+
+        if(i == 0):
+            compositeImage = newImage
+        else:
+            compositeImage = cv2.bitwise_and(compositeImage, newImage)
+
+        area = cv2.countNonZero(compositeImage)
+
+    return area
 
 def computeContourLoss(objectProbas, contours, targetObjectProbas, targetContours, nms_threshold=0.7, obj_threshold=0.7, lambda2=1.0, shifts=None):
     """
@@ -95,17 +371,9 @@ def computeContourLoss(objectProbas, contours, targetObjectProbas, targetContour
     mask_norm = mask.flatten(1).sum(1).reshape(-1, 1, 1)
     N = targetObjectProbas.shape[0]
     
-
-
-    
     term1 = (targetObjectProbas * mask * torch.abs(contours - targetContours).mean((-1, -2))/mask_norm).sum()/N
     term2 = ((~mask) * torch.abs(contours - shifts.permute(1, 2, 0).reshape(1, 256, 256, 1, 2)).mean((-1, -2))/(256*256-mask_norm)).sum()/N
     
-    #print(f"mask {mask.shape},\
-    #mask_norm {mask_norm},\
-    #term1 {term1},\
-    #term2 {term2}")
-
     loss = term1 + lambda2*term2
 
 
@@ -262,6 +530,8 @@ class SplineDist(pl.LightningModule):
                  lambda2=0.1,
                  size=256,
                  kernel_size=1,
+                 weight_decay=0.01,
+                 weight_pos=0.2,
                  device="cuda:2"):
         """
         """
@@ -271,7 +541,13 @@ class SplineDist(pl.LightningModule):
         self.example_input_array = torch.rand(1, 3, 256, 256)
 
         # Modules of the model
-        self.segmentationBackbone = UNet(num_features=num_features)
+        
+        self.rgb2gray = nn.Conv2d(3,
+                                  1,
+                                  kernel_size=1,
+                                  padding=0)
+        
+        self.segmentationBackbone = UNet(n_channels=1, num_features=num_features)
         
         self.objectFinder = nn.Conv2d(num_features,
                                       num_classes,
@@ -297,7 +573,7 @@ class SplineDist(pl.LightningModule):
         
         self.step = 0
                 
-        weights = torch.FloatTensor([0.2])
+        weights = torch.FloatTensor([self.hparams["weight_pos"]])
         self.bce = nn.BCEWithLogitsLoss(weight=weights)
 
         self.B3M = getBsplineMatrix(numSamples=MAX_CONTOUR_SIZE,
@@ -317,6 +593,11 @@ class SplineDist(pl.LightningModule):
         parser.add_argument("--splineBasis", type=int, default=3)
         parser.add_argument("--lambda1", type=float, default=1)
         parser.add_argument("--lambda2", type=float, default=0.1)
+        parser.add_argument("--size", type=int, default=256)
+        parser.add_argument("--kernel_size", type=int, default=1)
+        parser.add_argument("--weight_decay", type=float, default=0.0001)
+        parser.add_argument("--weight_pos", type=float, default=0.2)
+
 
         return parent_parser
 
@@ -324,7 +605,7 @@ class SplineDist(pl.LightningModule):
         """
         """
         
-        
+        x = F.tanh(self.rgb2gray(x))
         features = self.segmentationBackbone(x)
         objectProbas = self.objectFinder(features)
         angles = self.ControlPointsAngleRegressor(features)
@@ -338,42 +619,100 @@ class SplineDist(pl.LightningModule):
         return objectProbas, angles, distances, controlPoints
 
 
+#     def matchInstances(self, selectedContours, selectedScores, targetContours):
+#         """
+#         """
+#         # for increasing thresholds, compute the IoU pairwise between selected and target
+#         cost = np.zeros((selectedContours.shape[0], targetContours.shape[0]))
+#         for i in range(selectedContours.shape[0]):
+#             for j in range(targetContours.shape[0]):
+#                 cost[i, j] = polygon_iou(selectedContours[i], targetContours[j])
+        
+#         # solve linear assignement problem
+#         rows, cols = linear_sum_assignment(-cost)
+# #         values = -values
+
+#         values = cost[rows, cols]
+    
+#         precisions, recalls = [], []
+#         thresholds = np.linspace(0, 1, 10)
+        
+#         for threshold in thresholds:
+#             # compute true positifs, false negatives, false negatives
+#             FN = (values == 0).sum()
+#             TP = (values>=threshold).sum()- FN
+#             FP = (values<threshold).sum() - FN
+            
+            
+#             # compute precision, recall, f1
+#             precision = TP/(TP+FP)
+#             recall = TP/(TP+FN)
+
+#             precisions.append(precision)
+#             recalls.append(recall)
+
+#         # # find the best threshold
+#         # bestThreshold = thresholds[np.argmax(precisions)]
+#         # # compute the best precision and recall
+#         # bestPrecision = precisions[np.argmax(precisions)]
+#         # bestRecall = recalls[np.argmax(precisions)]
+
+
+#         return precisions, recalls, thresholds
+
     def matchInstances(self, selectedContours, selectedScores, targetContours):
         """
         """
+        precisions, recalls = np.zeros((10, 10)), np.zeros((10, 10))
+        IoU_thresholds = np.linspace(0.2, 0.8, 10)
+        confidence_thresholds = np.linspace(0, 1, 10)[::-1]
+
         # for increasing thresholds, compute the IoU pairwise between selected and target
-        cost = np.zeros(selectedContours.shape[0], targetContours.shape[0])
+        cost = np.zeros((selectedContours.shape[0], targetContours.shape[0]))
         for i in range(selectedContours.shape[0]):
             for j in range(targetContours.shape[0]):
                 cost[i, j] = polygon_iou(selectedContours[i], targetContours[j])
         
-        # solve linear assignement problem
-        values, selectedIds = linear_assignment(cost)
+        for j, confidence_threshold in enumerate(confidence_thresholds):
+        
 
+            cost_filtered = cost[selectedScores > confidence_threshold, :]
 
-        precisions, recalls = [], []
-        thresholds = np.linspace(0, 1, 20)
+            rows, cols = linear_sum_assignment(-cost_filtered)
+            values = cost_filtered[rows, cols]
+    
 
-        for threshold in thresholds:
-            # compute true positifs, false negatives, false negatives
-            TP = (values>=threshold).sum()
-            FN = len(set(range(targetContours.shape[0])) - TP)
-            FP = (values<threshold).sum()
-            # compute precision, recall, f1
-            precision = TP/(TP+FP)
-            recall = TP/(TP+FN)
+            for i, threshold in enumerate(IoU_thresholds):
+                # compute true positifs, false negatives, false negatives
+                FN = float((values == 0).sum())
+                TP = float((values>=threshold).sum())
+                FP = float((values<threshold).sum() - FN)
+                
+                
+                # compute precision, recall, f1
+#                 if(TP == 0):
+#                     precision = 0
+#                     recall = 1
+#                 else:
+                try:
+                    precision = TP/(TP+FP)
+                except:
+                    precision = 1
 
-            precisions.append(precision)
-            recalls.append(recall)
+                recall = TP/(targetContours.shape[0])
 
-        # # find the best threshold
-        # bestThreshold = thresholds[np.argmax(precisions)]
-        # # compute the best precision and recall
-        # bestPrecision = precisions[np.argmax(precisions)]
-        # bestRecall = recalls[np.argmax(precisions)]
+                    
+#                 if(precision == 0 or recall == 0):
+#                     f1 = 0
+#                 else:
+#                     f1 = 2*precision*recall/(precision+recall)
 
+                # precisions.append(precision)
+                # recalls.append(recall)
+                precisions[i, j] = precision
+                recalls[i, j] = recall
 
-        return zip(precisions, recalls), thresholds
+        return precisions, recalls, IoU_thresholds
 
 
     def compute_loss(self, predicted_targets, targets):
@@ -418,7 +757,7 @@ class SplineDist(pl.LightningModule):
         
         predicted_targets = (objectProbas, controlPoints, contours)
         loss = self.compute_loss(predicted_targets, targets)
-        self.log("train_loss", loss)
+        self.log("loss_train", loss)
         return {"loss": loss}
 
 
@@ -435,7 +774,7 @@ class SplineDist(pl.LightningModule):
         predicted_targets = (objectProbas, controlPoints, contours)
 
         loss = self.compute_loss(predicted_targets, targets)
-        self.log("val_loss", loss)
+        self.log("loss_val", loss)
         self.log("hp_metric", loss)
 
 
@@ -448,9 +787,9 @@ class SplineDist(pl.LightningModule):
             
             
             
-            tsb.add_histogram('Values/distances', distances, self.step)
-            tsb.add_histogram('Values/angles', angles, self.step)
-            tsb.add_histogram('Values/objectProbas', objectProbas, self.step)
+            tsb.add_histogram('distances', distances, self.step)
+            tsb.add_histogram('angles', angles, self.step)
+            tsb.add_histogram('objectProbas', objectProbas, self.step)
             ####################################################
             fig = plt.figure(figsize=(10, 10))
             objectProbas = torch.sigmoid(objectProbas)
@@ -473,13 +812,14 @@ class SplineDist(pl.LightningModule):
             
             
             for i in range(self.hparams["num_control_points"]):
-                circular_angle = np.mod(angles[0, i].detach().cpu().numpy() + np.pi, 2*np.pi)
+                circular_angle = angles[0, i].detach().cpu().numpy()
                 
-                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7))
+                fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 7))
                 ax1.imshow(distances[0, i].detach().cpu().numpy())
-                ax2.imshow(circular_angle, cmap="gist_rainbow")
+                ax2.imshow(np.cos(circular_angle), cmap="gist_rainbow")
+                ax3.imshow(np.sin(circular_angle), cmap="gist_rainbow")
                 # plot_to_tensorboard(tsb, fig, None, f"distance_angles{i}")
-                tsb.add_figure(f"Sample/distance_angles{i}", fig, self.step)
+                tsb.add_figure(f"distance_angles{i}", fig, self.step)
             
             contours = contours.flatten(1, 2)
             threshold = self.hparams["object_threshold"]
@@ -523,7 +863,7 @@ class SplineDist(pl.LightningModule):
 #             selectedIds = np.array(selectedIds)
 
 
-            #image2 = denormalize(images[0].detach().cpu()).numpy().transpose(1, 2, 0)
+#             image2 = denormalize(images[0].detach().cpu()).numpy().transpose(1, 2, 0)
     
             image2 = np.uint8(denormalize(images[0].detach().cpu()).numpy().transpose(1, 2, 0)*255)
 
@@ -554,6 +894,35 @@ class SplineDist(pl.LightningModule):
             tsb.add_figure(f"Sample/Instances", fig, self.step)
                 
             
+
+            ########################### Draw precision recall curve ###############################
+
+            (targetObjectProbas, targetOverlapProba, targetObjectContours) = targets
+            
+
+            targetObjectContours = targetObjectContours[0].reshape(256*256, -1, 2)
+            targetObjectContours = torch.unique(targetObjectContours, dim=0)[1:]
+            
+
+
+            precisions, recalls, thresholds = self.matchInstances(contours[scores>threshold][selectedIds],
+                                                                   scores[scores>threshold][selectedIds].cpu().numpy(),
+                                                                   targetObjectContours)
+
+            fig = plt.figure(figsize=(10, 10))
+            ax = fig.gca()
+            for i in range(precisions.shape[0]):
+                ax.plot(recalls[i], precisions[i], "o-", label=f"IoU@{thresholds[i]:.2f}")
+            ax.set_xlabel('Recall')
+            ax.set_ylabel('Precision')
+            ax.legend()
+#             ax.set_ylim([0.0, 1.05])
+#             ax.set_xlim([0.0, 1.0])
+            ax.grid(True)
+
+            tsb.add_figure(f"Sample/PrecisionRecall", fig, self.step)
+            
+
             self.step += 1
                 
         return {"loss": loss}
@@ -563,9 +932,13 @@ class SplineDist(pl.LightningModule):
         """
 
         """
-        optimizer = optim.Adam(self.parameters(), lr=self.hparams["learning_rate"], weight_decay=0.0001)
-#         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, 40)
-        scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
-#         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=5)
-#         lr_schedulers = {"scheduler": scheduler, "monitor": "val_loss"}
-        return [optimizer], scheduler#, lr_schedulers
+        optimizer = optim.Adam(self.parameters(), lr=self.hparams["learning_rate"], weight_decay=self.hparams["weight_decay"])
+#         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, 10)
+#         scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 
+#                                                                         T_0=10,
+#                                                                         T_mult=2)
+        
+#         scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=40)
+        lr_schedulers = {"scheduler": scheduler, "monitor": "loss_val"}
+        return [optimizer], lr_schedulers
