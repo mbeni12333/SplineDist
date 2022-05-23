@@ -56,8 +56,8 @@ class Up(nn.Module):
     def forward(self, x1, x2):
         x1 = self.up(x1)
         # input is CHW
-        diffY = x2.size()[2] - x1.size()[2]
-        diffX = x2.size()[3] - x1.size()[3]
+        diffY = x2.shape[2] - x1.shape[2]
+        diffX = x2.shape[3] - x1.shape[3]
 
         x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
                         diffY // 2, diffY - diffY // 2])
@@ -75,8 +75,11 @@ class Up(nn.Module):
 #         return self.conv(x)
 
 
+
+
+
 class UNet(nn.Module):
-    def __init__(self, n_channels=3, n_classes=1, bilinear=True):
+    def __init__(self, n_channels=3, n_classes=1, bilinear=True, num_features=128):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
@@ -92,7 +95,7 @@ class UNet(nn.Module):
         self.up2 = Up(512, 256 // factor, bilinear)
         self.up3 = Up(256, 128 // factor, bilinear)
         self.up4 = Up(128, 64, bilinear)
-        self.outf = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.outf = nn.Conv2d(64, num_features, kernel_size=3, padding=1)
         # self.outc = OutConv(64, n_classes)
         self.relu = nn.ReLU(inplace=True)
 

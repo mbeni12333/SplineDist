@@ -1,16 +1,12 @@
 import torch
-from scipy.interpolate import splev
+# from scipy.interpolate import splev
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import transforms
 import cv2
 import colorsys
-from skimage import exposure
+# from skimage import exposure
 from matplotlib.patches import Polygon
-
-
-
-
 
 
 def denormalize(x):
@@ -59,54 +55,54 @@ def getInstancesImageFromContours(contours, shape=(256, 256), color=None):
 
 def B(x, k, i, t):
 
-      if k == 0:
-         return 1.0 if t[i] <= x < t[i+1] else 0.0
+    if k == 0:
+        return 1.0 if t[i] <= x < t[i+1] else 0.0
 
-      if t[i+k] == t[i]:
-         c1 = 0.0
+    if t[i+k] == t[i]:
+        c1 = 0.0
 
-      else:
-         c1 = (x - t[i])/(t[i+k] - t[i]) * B(x, k-1, i, t)
+    else:
+        c1 = (x - t[i])/(t[i+k] - t[i]) * B(x, k-1, i, t)
 
-      if t[i+k+1] == t[i+1]:
-         c2 = 0.0
+    if t[i+k+1] == t[i+1]:
+        c2 = 0.0
 
-      else:
-         c2 = (t[i+k+1] - x)/(t[i+k+1] - t[i+1]) * B(x, k-1, i+1, t)
-      return c1 + c2
+    else:
+        c2 = (t[i+k+1] - x)/(t[i+k+1] - t[i+1]) * B(x, k-1, i+1, t)
+    return c1 + c2
 
-# def sampleBsplineFromControlPoints(controlPoints, numSamples, degree=3):
-#     """
-#     Sample a bspline from the control points
-#     :param controlPoints: the control points
-#     :param numSamples: the number of samples
-#     :param degree: the degree of the bspline
-#     :return: the sampled bspline
-#     """
+def sampleBsplineFromControlPoints(controlPoints, numSamples, degree=3):
+    """
+    Sample a bspline from the control points
+    :param controlPoints: the control points
+    :param numSamples: the number of samples
+    :param degree: the degree of the bspline
+    :return: the sampled bspline
+    """
 
-#     k = degree
-#     t = np.zeros((len(controlPoints)+degree*2+1))
-#     t[:degree] = 0
-#     t[degree:-degree] = np.linspace(0, 1, len(t) - degree*2)
-#     t[-degree:] = 1
+    k = degree
+    t = np.zeros((len(controlPoints)+degree*2+1))
+    t[:degree] = 0
+    t[degree:-degree] = np.linspace(0, 1, len(t) - degree*2)
+    t[-degree:] = 1
 
-#     def bspline(x, t, c, k):
-#         """
-#         Evaluate the bspline at x
-#         :param x: the x value
-#         :param t: the knot vector
-#         :param c: the control points
-#         :param k: the degree of the bspline
-#         :return: the value of the bspline
-#         """
-#         n = len(c)
-#         assert (n >= k+1) and (len(c) >= n)
-#         b = torch.FloatTensor([B(x, k, i, t) for i in range(n)]).reshape(1, n)
-#         return b @ c
+    def bspline(x, t, c, k):
+        """
+        Evaluate the bspline at x
+        :param x: the x value
+        :param t: the knot vector
+        :param c: the control points
+        :param k: the degree of the bspline
+        :return: the value of the bspline
+        """
+        n = len(c)
+        assert (n >= k+1) and (len(c) >= n)
+        b = torch.FloatTensor([B(x, k, i, t) for i in range(n)]).reshape(1, n)
+        return b @ c
 
-#     u = np.linspace(0, 1, numSamples, endpoint=True)
-#     controlPoints = torch.vstack((controlPoints, controlPoints[:3]))
-#     return torch.vstack([bspline(x, t, controlPoints, k) for x in u][degree:-degree])
+    u = np.linspace(0, 1, numSamples, endpoint=True)
+    controlPoints = torch.vstack((controlPoints, controlPoints[:3]))
+    return torch.vstack([bspline(x, t, controlPoints, k) for x in u][degree:-degree])
 
 
 
@@ -127,7 +123,7 @@ def getBsplineMatrix(numSamples=1000, degree=3, numControlPoints=18):
 def getContourSamples(controlPoints, B3M):
     """
     """
-    return torch.tensordot(B3M, controlPoints, dims=([1], [1]))
+    return torch.tensordot(B3M, controlPoints, dims=([1], [3]))
 
 
 
@@ -138,26 +134,43 @@ def showBatch(batch):
     :return:
     """
     batch_x, batch_y = batch
-
+    
+    
     for item in range(len(batch_x)):
 
         img = batch_x[item]
         img = denormalize(img).permute(1, 2, 0).clamp(0, 1).numpy()
+        print(img.ptp())
+        (objectProbas, overlapProba, objectContours) = batch_y
+        
+        objectProbas = objectProbas[item].permute(1, 2, 0)
+        overlapProba = overlapProba[item].permute(1, 2, 0)
+        objectContours = objectContours[item].reshape(256*256, -1, 2)
+        objectContours = torch.unique(objectContours, dim=0)
 
-        (objectProbas, overlapProba, objectContours, mask) = batch_y[item].values()
+        fig, (ax1, ax3, ax4, ax5) = plt.subplots(
+            1, 4, figsize=(25, 8))
 
-        mask = mask.numpy().copy()
+        image2 = np.uint8(img*255)
 
-        fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(
-            1, 5, figsize=(25, 5))
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    #     image2 = clahe.apply(image2)
+        img_yuv = cv2.cvtColor(image2, cv2.COLOR_RGB2YUV)
 
+        # equalize the histogram of the Y channel
+        img_yuv[:,:,0] = clahe.apply(img_yuv[:,:,0])
+
+        # convert the YUV image back to RGB format
+        image2 = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+        
         # plt.subplot(1,4,1)
         ax1.set_title("Original Image")
-        ax1.imshow(img)
+        ax1.imshow(image2)
 
-        ax2.set_title("Image With Adaptive histogram Equalization")
-        eq = exposure.equalize_adapthist(img, clip_limit=0.03)
-        ax2.imshow(np.clip(eq, 0, 1))
+#         ax2.set_title("Image With Adaptive histogram Equalization")
+# #         eq = exposure.equalize_adapthist(img, clip_limit=0.03)
+# #         ax2.imshow(np.clip(eq, 0, 1))
+#         ax2.imshow(img)
         # plt.subplot(1,4,2)
         ax3.set_title("Object Probabilities")
         # print(objectProbas.min(), objectProbas.max(), objectProbas.ptp())
@@ -165,7 +178,7 @@ def showBatch(batch):
         # plt.subplot(1,4,4)
         ax4.set_title("Object Instances")
         # instances, colors = getInstancesImageFromContours(objectContours)
-        ax4.imshow(img)
+        ax4.imshow(image2)
 
         # ax4.imshow(instances, alpha=0.3)
         colors = [ list(map(lambda x: x/255, getRandomColor())) for i in range(len(objectContours))]
@@ -179,3 +192,31 @@ def showBatch(batch):
 
         fig.tight_layout()
         plt.show()
+
+        
+def plot_to_tensorboard(writer, fig, step, fig_name):
+    """
+    Takes a matplotlib figure handle and converts it using
+    canvas and string-casts to a numpy array that can be
+    visualized in TensorBoard using the add_image function
+
+    Parameters:
+        writer (tensorboard.SummaryWriter): TensorBoard SummaryWriter instance.
+        fig (matplotlib.pyplot.fig): Matplotlib figure handle.
+        step (int): counter usually specifying steps/epochs/time.
+    """
+
+    # Draw figure on canvas
+    fig.canvas.draw()
+
+    # Convert the figure to numpy array, read the pixel values and reshape the array
+    img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+    # Normalize into 0-1 range for TensorBoard(X). Swap axes for newer versions where API expects colors in first dim
+    img = img / 255.0
+    # img = np.swapaxes(img, 0, 2) # if your TensorFlow + TensorBoard version are >= 1.8
+
+    # Add figure in numpy "image" to TensorBoard writer
+    writer.add_image(fig_name, img, step)
+    plt.close(fig)

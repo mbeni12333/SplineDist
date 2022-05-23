@@ -3,12 +3,21 @@
 \begin{document}
 
 \chapter{Implementation}
-\section{Pytorch lightning}
+We implement our model using Pytorch-lightning library (which is a higher level API for pytorch) and Opencv (for image processing operations) 
+
 \section{Data augmentation}
+We use image mirroring both horizontally and vertically (we mirror the ground truth contour accordingly)
 \section{ICY software}
+Icy is a software to do image analysis, and is mainly oriented toward the analysis of biological images. As a further step to this project, we are currently adapting the code into a compatible plugin for inference. The plugin is made with java and TensorFlow (which only require 2 files, one for the model definition, and the second for the weights).
+
 \section{How to train on a new dataset}
-\section{MASK RCNN}
-\section{StarDist}
+SplineDist expects the new dataset to provide (objectProbas, contours, objectOverlap) 
+
+We use a pretrained Mask RCNN model on DSB18 dataset from 
+\section{MASK RCNN and StarDist}
+We use the official codebase of stardist found at \url{https://github.com/stardist/stardist},
+For Mask RCNN we use directly the results reported by the main paper
+
 
 
 

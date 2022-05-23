@@ -35,7 +35,7 @@ callbacks = [summary, progressbar, checkpoint_callback,
 
 if __name__ == "__main__":
     model = SplineDist()
-    datamodule = Nuclie_datamodule()
+    datamodule = Nuclie_datamodule(path="Datasets/DSB18/train")
 
     trainer = pl.Trainer(max_epochs=50,
                          gpus=0,
